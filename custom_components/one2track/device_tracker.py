@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.device_tracker.config_entry import TrackerEntity
+from homeassistant.components.device_tracker import SourceType, TrackerEntity
 from homeassistant.components.zone import async_active_zone
 
 from .const import DOMAIN
@@ -43,9 +43,9 @@ class One2TrackDeviceTracker(One2TrackEntity, TrackerEntity):
         self._attr_unique_id = uuid
 
     @property
-    def source_type(self) -> str:
+    def source_type(self) -> SourceType:
         """Return the source type."""
-        return "gps"
+        return SourceType.GPS
 
     @property
     def latitude(self) -> float | None:
