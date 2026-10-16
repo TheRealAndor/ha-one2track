@@ -1,6 +1,6 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.17-blue)](https://github.com/jurrienk/ha-one2track)
+[![Version](https://img.shields.io/badge/version-1.0.18-blue)](https://github.com/TheRealAndor/ha-one2track)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
@@ -25,7 +25,7 @@ Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) 
 1. Open HACS in your Home Assistant instance
 2. Go to **Integrations** and click the three-dot menu in the top right
 3. Select **Custom repositories**
-4. Add `https://github.com/jurrienk/ha-one2track` with category **Integration**
+4. Add `https://github.com/TheRealAndor/ha-one2track` with category **Integration**
 5. Search for "One2Track" and install it
 6. Restart Home Assistant
 7. Go to **Settings > Devices & Services > Add Integration** and search for **One2Track**
@@ -64,6 +64,10 @@ Call the `one2track.get_raw_device_data` service to get raw data from all source
 See [TESTING.md](TESTING.md) for the full architecture reference, entity specifications, service examples, and test procedures.
 
 ## Changelog
+
+### v1.0.18 (2026-10-16)
+
+- Forked to [TheRealAndor/ha-one2track](https://github.com/TheRealAndor/ha-one2track); manifest, HACS URL and code owner updated
 
 ### v1.0.17 (2026-03-21)
 
@@ -129,3 +133,7 @@ See [TESTING.md](TESTING.md) for the full architecture reference, entity specifi
 - Portal readback before modify operations
 - Persistent settings storage across HA restarts
 - 19 services with full entity/device/area targeting
+
+## Credits
+
+This is a maintained fork of [jurrienk/ha-one2track](https://github.com/jurrienk/ha-one2track), which is no longer actively maintained.
