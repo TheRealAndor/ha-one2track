@@ -59,15 +59,12 @@ There is no official One2Track API. This integration communicates with `www.one2
 
 Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
 
-## Documentation
-
-See [TESTING.md](TESTING.md) for the full architecture reference, entity specifications, service examples, and test procedures.
-
 ## Changelog
 
 ### v1.0.18 (2026-10-16)
 
 - Forked to [TheRealAndor/ha-one2track](https://github.com/TheRealAndor/ha-one2track); manifest, HACS URL and code owner updated
+- **Docs:** Removed reference to missing TESTING.md
 
 ### v1.0.17 (2026-03-21)
 
