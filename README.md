@@ -1,6 +1,6 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.22-blue)](https://github.com/TheRealAndor/ha-one2track)
+[![Version](https://img.shields.io/badge/version-1.0.23-blue)](https://github.com/TheRealAndor/ha-one2track)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
@@ -43,7 +43,7 @@ The integration auto-discovers your watches and their capabilities. Tested with:
 
 - **Connect UP** (model_id 77) — GPS interval code 0077, step counter code 0082
 - **Connect MOVE** (model_id 27) — GPS interval code 0078, step counter code 0079, plus whitelist, intercom, and password change
-- **Connect NEXT** (model_id 201)
+- **Connect NEXT** (model_id 201) — GPS interval code 0077 (5 min / 10 min / 1 hour), step counter code 0082; no whitelist, intercom or password change
 
 Other One2Track watch models should work — the integration discovers available commands dynamically rather than hardcoding per model.
 
@@ -61,6 +61,11 @@ There is no official One2Track API. This integration communicates with `www.one2
 Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
 
 ## Changelog
+
+### v1.0.23 (2026-10-16)
+
+- **Fix:** Profile mode and GPS interval selects now show as unknown when the portal reports no active option, instead of falsely showing the first option (seen on Connect NEXT)
+- **Docs:** Documented Connect NEXT command codes
 
 ### v1.0.22 (2026-10-16)
 

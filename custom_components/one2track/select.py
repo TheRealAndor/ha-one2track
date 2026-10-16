@@ -126,9 +126,9 @@ class One2TrackDynamicSelect(One2TrackEntity, SelectEntity):
         self._value_map = value_map
         self._label_to_value = {v: k for k, v in value_map.items()}
         self._attr_options = list(value_map.values())
-        self._attr_current_option = current_option or (
-            self._attr_options[0] if self._attr_options else None
-        )
+        # None (shown as unknown) when the portal reports no checked option,
+        # rather than pretending the first option is active
+        self._attr_current_option = current_option
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
