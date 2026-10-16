@@ -1,6 +1,6 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.20-blue)](https://github.com/TheRealAndor/ha-one2track)
+[![Version](https://img.shields.io/badge/version-1.0.21-blue)](https://github.com/TheRealAndor/ha-one2track)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
@@ -60,6 +60,10 @@ There is no official One2Track API. This integration communicates with `www.one2
 Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
 
 ## Changelog
+
+### v1.0.21 (2026-10-16)
+
+- **New:** Bundled One2Track icon and logo (light and dark) in `brand/`, shown on the integrations page from HA 2026.3
 
 ### v1.0.20 (2026-10-16)
 
