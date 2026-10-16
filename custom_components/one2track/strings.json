@@ -46,6 +46,9 @@
       "steps_today": {
         "name": "Steps today"
       },
+      "steps_total": {
+        "name": "Steps total"
+      },
       "accuracy": {
         "name": "GPS accuracy"
       },

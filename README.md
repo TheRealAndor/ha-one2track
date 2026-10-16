@@ -7,7 +7,7 @@ Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) 
 ## Features
 
 - **Device tracker** with GPS coordinates, zone detection, and address
-- **14 sensors** — battery, SIM balance, signal strength, satellite count, speed, altitude, heading, GPS accuracy, steps, status, timestamps, phonebook contact count, and whitelist number count (last two are model-dependent)
+- **15 sensors** — battery, SIM balance, signal strength, satellite count, speed, altitude, heading, GPS accuracy, steps today, steps total, status, timestamps, phonebook contact count, and whitelist number count (last two are model-dependent)
 - **Phonebook & whitelist sensors** — show contact/number count with full list as attributes (only created if the device supports these features)
 - **Binary sensor** — fall detection
 - **Buttons** — refresh location (activate GPS mode), find device (ring the watch)

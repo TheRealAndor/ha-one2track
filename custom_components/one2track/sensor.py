@@ -14,6 +14,9 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import PERCENTAGE, UnitOfLength, UnitOfSpeed
+from homeassistant.core import callback
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import dt as dt_util
 
 from .const import LOGGER, PHONEBOOK_CODES, WHITELIST_SLOT_CODES
 from .entity import One2TrackEntity
@@ -41,6 +44,19 @@ def _meta(data: dict) -> dict:
     loc = _loc(data)
     m = loc.get("meta_data")
     return m if isinstance(m, dict) else {}
+
+
+def _steps_counter(data: dict) -> int | None:
+    """Return the watch's running step counter (meta_data.steps).
+
+    This is a cumulative counter kept by the watch, not a daily value.
+    The portal's step_count_day field is not kept up to date and is ignored.
+    """
+    raw = _meta(data).get("steps")
+    try:
+        return int(raw) if raw is not None else None
+    except (ValueError, TypeError):
+        return None
 
 
 _MAX_FUTURE = timedelta(hours=24)
@@ -154,14 +170,12 @@ SENSOR_DESCRIPTIONS: tuple[One2TrackSensorDescription, ...] = (
         value_fn=lambda d: float(v) if (v := _loc(d).get("altitude")) is not None else None,
     ),
     One2TrackSensorDescription(
-        key="steps_today",
-        translation_key="steps_today",
+        key="steps_total",
+        translation_key="steps_total",
         native_unit_of_measurement="steps",
-        state_class=SensorStateClass.MEASUREMENT,
+        state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:shoe-print",
-        value_fn=lambda d: v
-        if (v := _loc(d).get("step_count_day")) is not None
-        else _meta(d).get("steps"),
+        value_fn=lambda d: _steps_counter(d),
     ),
     One2TrackSensorDescription(
         key="accuracy",
@@ -201,13 +215,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up One2Track sensor entities."""
     coordinator = entry.runtime_data.coordinator
-    entities: list[One2TrackSensor | One2TrackPhonebookSensor | One2TrackWhitelistSensor] = [
+    entities: list[SensorEntity] = [
         One2TrackSensor(coordinator, device["uuid"], desc)
         for device in coordinator.device_list
         for desc in SENSOR_DESCRIPTIONS
     ]
     for device in coordinator.device_list:
         uuid = device["uuid"]
+        entities.append(One2TrackStepsTodaySensor(coordinator, uuid))
         if coordinator.device_find_code(uuid, PHONEBOOK_CODES):
             entities.append(One2TrackPhonebookSensor(coordinator, uuid))
         for slot1, _slot2 in WHITELIST_SLOT_CODES:
@@ -283,3 +298,90 @@ class One2TrackWhitelistSensor(One2TrackEntity, SensorEntity):
         """Return the full number list as an attribute."""
         numbers = self.coordinator.get_whitelist(self._uuid)
         return {"numbers": numbers}
+
+
+class One2TrackStepsTodaySensor(One2TrackEntity, RestoreEntity, SensorEntity):
+    """Steps walked today, derived from the watch's running step counter.
+
+    Today's steps = current counter - last counter reading of a previous day.
+    The day of a reading is the day of its last_location_update, since the
+    counter only refreshes when the watch reports a new location. The
+    baseline is kept in the state attributes so it survives restarts.
+    """
+
+    _attr_translation_key = "steps_today"
+    _attr_native_unit_of_measurement = "steps"
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_icon = "mdi:shoe-print"
+
+    def __init__(self, coordinator: One2TrackCoordinator, uuid: str) -> None:
+        """Initialize the steps today sensor."""
+        super().__init__(coordinator, uuid)
+        self._attr_unique_id = f"{uuid}_steps_today"
+        self._baseline: int | None = None
+        self._baseline_date: str | None = None
+        self._last_counter: int | None = None
+        self._last_counter_date: str | None = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the baseline, then process the current data."""
+        await super().async_added_to_hass()
+        if (last := await self.async_get_last_state()) is not None:
+            attrs = last.attributes
+            self._baseline = attrs.get("baseline")
+            self._baseline_date = attrs.get("baseline_date")
+            self._last_counter = attrs.get("last_counter")
+            self._last_counter_date = attrs.get("last_counter_date")
+        self._update_from_data()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Recalculate on new coordinator data."""
+        self._update_from_data()
+        super()._handle_coordinator_update()
+
+    def _update_from_data(self) -> None:
+        counter = _steps_counter(self._data)
+        reading_ts = _sanitized_location_update(self._data)
+        if counter is None or reading_ts is None:
+            return
+        reading_date = dt_util.as_local(reading_ts).date().isoformat()
+
+        if self._baseline_date != reading_date:
+            if (
+                self._last_counter is not None
+                and self._last_counter_date is not None
+                and self._last_counter_date < reading_date
+            ):
+                # Last reading of a previous day is where today starts
+                self._baseline = self._last_counter
+            else:
+                # No earlier reading known (first run): count from now on
+                self._baseline = counter
+            self._baseline_date = reading_date
+
+        if self._baseline is not None and counter < self._baseline:
+            # Counter was reset on the watch
+            self._baseline = 0
+
+        self._last_counter = counter
+        self._last_counter_date = reading_date
+
+    @property
+    def native_value(self) -> int | None:
+        """Return today's steps (0 if the latest reading is from an earlier day)."""
+        if self._last_counter is None or self._baseline is None:
+            return None
+        if self._last_counter_date != dt_util.now().date().isoformat():
+            return 0
+        return self._last_counter - self._baseline
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Expose the baseline (also used to restore it after a restart)."""
+        return {
+            "baseline": self._baseline,
+            "baseline_date": self._baseline_date,
+            "last_counter": self._last_counter,
+            "last_counter_date": self._last_counter_date,
+        }
