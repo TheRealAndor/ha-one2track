@@ -1,6 +1,6 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.23-blue)](https://github.com/TheRealAndor/ha-one2track)
+[![Version](https://img.shields.io/badge/version-1.0.24-blue)](https://github.com/TheRealAndor/ha-one2track)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
@@ -61,6 +61,11 @@ There is no official One2Track API. This integration communicates with `www.one2
 Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
 
 ## Changelog
+
+### v1.0.24 (2026-10-16)
+
+- **Fix:** "Steps today" is now calculated from the watch's running step counter (`meta_data.steps`) minus the last reading of the previous day. The portal's `step_count_day` field was stale (Connect MOVE) or empty (Connect NEXT) and is no longer used. On the day of installing, steps are counted from that moment on
+- **New:** "Steps total" sensor with the watch's cumulative step counter
 
 ### v1.0.23 (2026-10-16)
 
