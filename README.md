@@ -1,6 +1,6 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.21-blue)](https://github.com/TheRealAndor/ha-one2track)
+[![Version](https://img.shields.io/badge/version-1.0.22-blue)](https://github.com/TheRealAndor/ha-one2track)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
@@ -14,7 +14,7 @@ Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) 
 - **Switch** — step counter toggle
 - **Selects** — GPS tracking interval, profile/sound mode
 - **19 services** — send message, force update, find device, intercom, set SOS number, set/add/remove phonebook contacts, set/add/remove whitelist numbers, set alarms, set quiet times, set language/timezone, change password, factory reset, remote shutdown, and a raw diagnostics service
-- **Multi-model support** — automatically discovers each watch's capabilities (Connect MOVE, Connect UP, and others)
+- **Multi-model support** — automatically discovers each watch's capabilities (Connect MOVE, Connect UP, Connect NEXT, and others)
 - **Device targeting** — all services support `entity_id`, `device_id`, and `area_id` targeting
 - **Persistent settings** — phonebook, whitelist, alarms, and quiet times survive HA restarts
 
@@ -43,6 +43,7 @@ The integration auto-discovers your watches and their capabilities. Tested with:
 
 - **Connect UP** (model_id 77) — GPS interval code 0077, step counter code 0082
 - **Connect MOVE** (model_id 27) — GPS interval code 0078, step counter code 0079, plus whitelist, intercom, and password change
+- **Connect NEXT** (model_id 201)
 
 Other One2Track watch models should work — the integration discovers available commands dynamically rather than hardcoding per model.
 
@@ -60,6 +61,10 @@ There is no official One2Track API. This integration communicates with `www.one2
 Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
 
 ## Changelog
+
+### v1.0.22 (2026-10-16)
+
+- **New:** Recognise Connect NEXT watches (model ID 201) instead of showing `Unknown (201)`
 
 ### v1.0.21 (2026-10-16)
 

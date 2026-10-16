@@ -37,6 +37,7 @@ class One2TrackEntity(CoordinatorEntity[One2TrackCoordinator]):
     _MODEL_NAMES: dict[int, str] = {
         27: "Connect MOVE",
         77: "Connect UP",
+        201: "Connect NEXT",
     }
 
     @property
