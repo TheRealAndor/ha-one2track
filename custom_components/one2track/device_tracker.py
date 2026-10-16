@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.device_tracker import SourceType, TrackerEntity
-from homeassistant.components.zone import async_active_zone
 
 from .const import DOMAIN
 from .entity import One2TrackEntity
@@ -25,7 +24,7 @@ async def async_setup_entry(
     """Set up One2Track device trackers."""
     coordinator = entry.runtime_data.coordinator
     async_add_entities(
-        One2TrackDeviceTracker(coordinator, hass, device["uuid"])
+        One2TrackDeviceTracker(coordinator, device["uuid"])
         for device in coordinator.device_list
     )
 
@@ -36,10 +35,9 @@ class One2TrackDeviceTracker(One2TrackEntity, TrackerEntity):
     _attr_name = None
     _attr_icon = "mdi:watch-variant"
 
-    def __init__(self, coordinator, hass, uuid: str) -> None:
+    def __init__(self, coordinator, uuid: str) -> None:
         """Initialize the tracker."""
         super().__init__(coordinator, uuid)
-        self._hass = hass
         self._attr_unique_id = uuid
 
     @property
@@ -76,25 +74,6 @@ class One2TrackDeviceTracker(One2TrackEntity, TrackerEntity):
         if isinstance(meta, dict) and "accuracy_meters" in meta:
             return meta["accuracy_meters"]
         return 10
-
-    @property
-    def battery_level(self) -> int | None:
-        """Return battery level."""
-        return self._location.get("battery_percentage")
-
-    @property
-    def location_name(self) -> str | None:
-        """Return location name (zone or address)."""
-        try:
-            if self.latitude is not None and self.longitude is not None:
-                zone = async_active_zone(
-                    self._hass, self.latitude, self.longitude, self.location_accuracy
-                )
-                if zone:
-                    return zone.entity_id.removeprefix("zone.")
-        except Exception:
-            pass
-        return self._location.get("address")
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

@@ -1,6 +1,6 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.19-blue)](https://github.com/TheRealAndor/ha-one2track)
+[![Version](https://img.shields.io/badge/version-1.0.20-blue)](https://github.com/TheRealAndor/ha-one2track)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
@@ -60,6 +60,11 @@ There is no official One2Track API. This integration communicates with `www.one2
 Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
 
 ## Changelog
+
+### v1.0.20 (2026-10-16)
+
+- **Fix:** Removed deprecated `battery_level` and `location_name` overrides from the device tracker (unsupported from HA 2027.7). Use the battery sensor for the battery level; the `address` attribute still holds the current address
+- **Change:** The tracker state is now determined by Home Assistant from the coordinates: `home`, the zone name, or `not_home`. Outside a zone the state is no longer the street address
 
 ### v1.0.19 (2026-10-16)
 
