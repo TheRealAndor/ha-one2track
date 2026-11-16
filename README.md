@@ -43,7 +43,7 @@ The integration auto-discovers your watches and their capabilities. Tested with:
 
 - **Connect UP** (model_id 77) — GPS interval code 0077, step counter code 0082
 - **Connect MOVE** (model_id 27) — GPS interval code 0078, step counter code 0079, plus whitelist, intercom, and password change
-- **Connect NEXT** (model_id 201) — GPS interval code 0077 (5 min / 10 min / 1 hour), step counter code 0082; no whitelist, intercom or password change
+- **Connect NEXT** (model_id 201 or 277) — GPS interval code 0077 (5 min / 10 min / 1 hour), step counter code 0082; no whitelist, intercom or password change
 
 Other One2Track watch models should work — the integration discovers available commands dynamically rather than hardcoding per model.
 
@@ -61,6 +61,10 @@ There is no official One2Track API. This integration communicates with `www.one2
 Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
 
 ## Changelog
+
+### v1.0.25 (2026-11-16)
+
+- **Fix:** Recognise Connect NEXT watches reporting model ID 277 instead of showing `Unknown (277)` ([#1](https://github.com/TheRealAndor/ha-one2track/issues/1))
 
 ### v1.0.24 (2026-10-16)
 

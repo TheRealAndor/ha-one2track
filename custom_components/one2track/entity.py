@@ -38,6 +38,7 @@ class One2TrackEntity(CoordinatorEntity[One2TrackCoordinator]):
         27: "Connect MOVE",
         77: "Connect UP",
         201: "Connect NEXT",
+        277: "Connect NEXT",
     }
 
     @property
