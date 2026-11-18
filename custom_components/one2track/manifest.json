@@ -1,6 +1,7 @@
 {
   "domain": "one2track",
   "name": "One2Track",
+  "categories": ["presence_location.trackers"],
   "codeowners": ["@TheRealAndor"],
   "config_flow": true,
   "dependencies": [],
@@ -10,6 +11,6 @@
   "issue_tracker": "https://github.com/TheRealAndor/ha-one2track/issues",
   "requirements": [],
   "ssdp": [],
-  "version": "1.0.25",
+  "version": "1.0.26",
   "zeroconf": []
 }

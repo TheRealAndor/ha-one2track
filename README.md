@@ -64,6 +64,12 @@ Call the `one2track.get_raw_device_data` service to get raw data from all source
 
 ## Changelog
 
+### v1.0.26 (2026-11-18)
+
+- **Change:** HACS name is now "One2Track"
+- **Docs:** Added `presence_location.trackers` category to the manifest
+- **CI:** HACS and hassfest validation on every push
+
 ### v1.0.25 (2026-11-16)
 
 - **Fix:** Recognise Connect NEXT watches reporting model ID 277 instead of showing `Unknown (277)` ([#1](https://github.com/TheRealAndor/ha-one2track/issues/1))
