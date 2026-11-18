@@ -24,6 +24,16 @@ Ideas and open work for upcoming versions. Tick an item when it ships and mentio
 - [ ] Collect alert texts for other languages and alert types
 - [ ] Identical messages in the same minute are reported once
 
+**🏅 Quality scale (Silver)**
+
+- [ ] Register actions in async_setup
+- [ ] Removal instructions in the README
+- [ ] Test suite with more than 95% coverage
+- [ ] PARALLEL_UPDATES on every platform
+- [ ] Document the setup fields
+- [ ] Check unavailable handling and logging
+- [ ] Self-assessment and README note
+
 **🧹 Housekeeping**
 
 - [ ] Submit to the HACS default repositories
@@ -151,6 +161,43 @@ Portal messages have no ID and only minute precision, so they are recognised by 
 
 - Document this limitation in the Message events section of the README
 - If the portal page turns out to contain an ID or exact timestamp anywhere, use that instead
+
+## 🏅 Quality scale (Silver)
+
+The rules of the [integration quality scale](https://contributors.home-assistant.io/core/quality-scale/rules/) that are still open for Bronze and Silver, based on a quick review of the code after v1.0.29.
+
+### Register actions in async_setup
+
+Bronze rule `action-setup`: actions are now registered from `async_setup_entry` (`async_setup_services` in `__init__.py`) and removed on unload. Register them once in `async_setup`, so they exist even when the config entry is not loaded, and raise `ServiceValidationError` when the targeted watch's entry is not loaded.
+
+### Removal instructions in the README
+
+Bronze rule `docs-removal-instructions`: add a short section on how to remove the integration (*Settings → Devices & services → One2Track → Delete*, then remove it in HACS or the Marketplace), and what stays behind.
+
+### Test suite with more than 95% coverage
+
+Silver rule `test-coverage` (and Bronze `config-flow-test-coverage`): add a pytest suite with `pytest-homeassistant-custom-component`.
+
+- Config flow: success, invalid auth, cannot connect, unknown error, already configured, reauth (success, wrong account, invalid password)
+- Coordinator, API parsing, entities, actions and events, with anonymised portal fixtures
+- Includes *Automated tests for the message parser and event detection* above
+- Run it in the Validate workflow and fail below 95% coverage
+
+### PARALLEL_UPDATES on every platform
+
+Silver rule `parallel-updates`: set `PARALLEL_UPDATES` in every platform module. `0` for read-only platforms that use the coordinator (sensor, binary_sensor, device_tracker, event), and `1` for platforms that send commands to the portal (button, select, switch), so commands do not hit the portal at the same time.
+
+### Document the setup fields
+
+Silver rule `docs-installation-parameters`: describe each field of the setup and re-authentication dialog in the README (username: the e-mail address of the One2Track portal account; password), with `data_description` texts in `translations/en.json`.
+
+### Check unavailable handling and logging
+
+Silver rules `entity-unavailable` and `log-when-unavailable`: verify that all entities become unavailable when the portal cannot be reached (also the entities that don't use the coordinator data directly), and that a lost connection is logged once and its recovery once, without extra warnings from the integration itself.
+
+### Self-assessment and README note
+
+The Marketplace has no official quality tiers; they are only awarded to core integrations. Once the Silver rules are met, add a `quality_scale.yaml` with the status of every rule (done, todo or exempt with a reason) and a short note in the README that the integration follows the Silver rules. Gold candidates already on this list: *Diagnostics download*, *Dutch translation*; other Gold rules to consider later are `icons.json`, a reconfigure flow, entity categories, repairs and known limitations.
 
 ## 🧹 Housekeeping
 
