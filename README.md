@@ -1,6 +1,7 @@
 # One2Track — Home Assistant Integration
 
-[![Version](https://img.shields.io/badge/version-1.0.24-blue)](https://github.com/TheRealAndor/ha-one2track)
+[![Release](https://img.shields.io/github/v/release/TheRealAndor/ha-one2track)](https://github.com/TheRealAndor/ha-one2track/releases)
+[![Validate](https://github.com/TheRealAndor/ha-one2track/actions/workflows/validate.yml/badge.svg)](https://github.com/TheRealAndor/ha-one2track/actions/workflows/validate.yml)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20me-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/therealandor) [![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white)](https://paypal.me/andorklink)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
