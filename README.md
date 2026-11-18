@@ -50,17 +50,122 @@ The integration auto-discovers your watches and their capabilities. Tested with:
 
 Other One2Track watch models should work — the integration discovers available commands dynamically rather than hardcoding per model.
 
-## How It Works
+## Using the integration
 
-There is no official One2Track API. This integration communicates with `www.one2trackgps.com` (a Ruby on Rails web application) by:
+### What you get per watch
 
-1. Authenticating via the login form with session cookies and CSRF tokens
-2. Polling device state by scraping inline JavaScript variables from device pages
-3. Refreshing base data from the JSON device list endpoint
-4. Sending commands via form POSTs that mimic the web portal's PATCH requests
-5. Reading the Messages tab for alerts from the watch
+Each watch becomes a device in Home Assistant, named after the watch in the One2Track app. The entity IDs below are for a watch named **Sam**.
 
-## Message events
+| Entity | What it does |
+|---|---|
+| `device_tracker.sam` | Location on the map, with `home`, the zone name or `not_home` as state. Attributes include `address`, `location_type` (GPS or WiFi) and the SIM balance |
+| `sensor.sam_battery`, `sensor.sam_signal_strength`, `sensor.sam_sim_balance` | Battery level, mobile signal and prepaid balance |
+| `sensor.sam_steps_today`, `sensor.sam_steps_total` | Steps counted today and in total (the step counter must be on) |
+| `sensor.sam_status`, `sensor.sam_last_communication`, `sensor.sam_last_location_update` | How the watch is connected (`gps`, `wifi` or `offline`), when it last checked in and when it last sent a position |
+| Speed, altitude, heading, GPS accuracy and satellite count | Details of the last GPS fix |
+| `sensor.sam_phonebook`, `sensor.sam_whitelist` | Number of contacts and allowed numbers, with the full list as attributes (only on models that support them) |
+| `binary_sensor.sam_fall_detected` | On when the watch detects a fall |
+| `event.sam_message` | Fires for each new message from the watch, such as SOS and low battery. See [Message events](#message-events) |
+| `button.sam_refresh_location` | Asks the watch for a fresh GPS position right now |
+| `button.sam_find_device` | Makes the watch ring, to find it in the house |
+| `button.sam_turn_off_watch` | Turns the watch off. It cannot be turned on again remotely |
+| `switch.sam_step_counter` | Turns the step counter on or off |
+| `select.sam_gps_tracking_interval` | How often the watch sends its position. More often means a fresher location and a shorter battery life |
+| `select.sam_profile_mode` | Sound profile of the watch: sound and vibrate, sound only, vibrate only or silent |
+
+The options of the selects come from the watch itself, so they differ per model and use the language of your One2Track account.
+
+### On your dashboard
+
+A map and the most useful controls in one view:
+
+```yaml
+type: vertical-stack
+cards:
+  - type: map
+    entities:
+      - device_tracker.sam
+    hours_to_show: 6
+  - type: entities
+    entities:
+      - sensor.sam_battery
+      - sensor.sam_last_location_update
+      - event.sam_message
+      - select.sam_gps_tracking_interval
+      - button.sam_refresh_location
+      - button.sam_find_device
+```
+
+### Actions
+
+All actions start with `one2track.` and take the watch as target: an `entity_id` of any of its entities, a `device_id` or an `area_id`. Try them out in **Developer tools → Actions**.
+
+| Action | What it does |
+|---|---|
+| `send_message` | Shows a text of at most 30 characters on the watch's screen |
+| `force_update` | Fast GPS mode for about 2 minutes, for a fresh position |
+| `find_device` | Makes the watch ring |
+| `intercom` | Makes the watch call a phone number immediately |
+| `set_sos_number` | Sets the number the watch calls when SOS is pressed |
+| `set_phonebook`, `add_phonebook_contact`, `remove_phonebook_contact` | Manages the contacts on the watch |
+| `set_whitelist`, `add_whitelist_number`, `remove_whitelist_number` | Manages the numbers allowed to call the watch (up to 10, Connect MOVE only) |
+| `set_alarms` | Sets alarms on the watch |
+| `set_quiet_times` | Sets up to 3 time windows in which the watch is silent |
+| `set_language_timezone` | Sets the watch's language and UTC offset |
+| `change_password` | Changes the 6-digit PIN of the watch |
+| `factory_reset` | ⚠️ Resets the watch to factory settings. Cannot be undone |
+| `remote_shutdown` | ⚠️ Turns the watch off. It cannot be turned on again remotely |
+| `send_device_command` | Sends a raw command code, for advanced use |
+| `get_raw_device_data` | Returns all raw data for troubleshooting, see [Diagnostics](#diagnostics) |
+
+A few examples:
+
+```yaml
+# Contacts on the watch (replaces the whole list)
+action: one2track.set_phonebook
+target:
+  entity_id: device_tracker.sam
+data:
+  contacts:
+    - name: Mum
+      number: "0031612345678"
+    - name: Dad
+      number: "0031687654321"
+```
+
+```yaml
+# Silent at night and during the lunch break at school
+action: one2track.set_quiet_times
+target:
+  entity_id: device_tracker.sam
+data:
+  windows:
+    - start: "22:00"
+      end: "07:00"
+    - start: "12:00"
+      end: "13:00"
+```
+
+```yaml
+# Wake-up alarm at 07:00 on weekdays (format HH:MM-STATUS-MODE[-DAYS], days Mon to Sun)
+action: one2track.set_alarms
+target:
+  entity_id: device_tracker.sam
+data:
+  alarms:
+    - "07:00-1-3-1111100"
+```
+
+```yaml
+# Let the watch call you now
+action: one2track.intercom
+target:
+  entity_id: device_tracker.sam
+data:
+  phone_number: "0031612345678"
+```
+
+### Message events
 
 Each watch gets an event entity (`event.<name>_message`) that fires when a new message from the watch appears in the portal's Messages tab, such as "Sam heeft op de SOS knop gedrukt!". The event data holds `message`, `sender`, `sent_at` (minute precision, in Home Assistant's time zone) and `urgent` (true when the portal shows the message in red, as it does for SOS). Messages you send to the watch are not fired. On first setup, existing messages are marked as seen and do not fire.
 
@@ -70,7 +175,7 @@ The portal is checked once per update (every 60 seconds), so an SOS reaches Home
 
 The entity's state is the time of the last event, and the UI shows the last event type (for example "SOS") until the next one. Every new message changes the time, so a state trigger fires for each message, also for a second SOS in a row. Exclude `unavailable` as in the [examples](#examples), or the automation also fires when the entity restores its state after a Home Assistant restart. Do not exclude `unknown`: that is the state before the very first event.
 
-## Sending messages to the watch
+### Sending messages to the watch
 
 The `one2track.send_message` action shows a text message on the watch's screen, just like the Messages tab in the portal. Messages can be at most 30 characters; longer ones are refused with an error.
 
@@ -81,6 +186,10 @@ target:
 data:
   message: "Dinner is ready!"
 ```
+
+### When your password changes
+
+When the stored One2Track password stops working, Home Assistant shows a **Re-authenticate** notification. Click it and enter the new password; the integration reloads and all entities, history and automations stay as they were.
 
 ## Examples
 
@@ -241,6 +350,16 @@ automation:
         data:
           message: "Time to come home!"
 ```
+
+## How It Works
+
+There is no official One2Track API. This integration communicates with `www.one2trackgps.com` (a Ruby on Rails web application) by:
+
+1. Authenticating via the login form with session cookies and CSRF tokens
+2. Polling device state by scraping inline JavaScript variables from device pages
+3. Refreshing base data from the JSON device list endpoint
+4. Sending commands via form POSTs that mimic the web portal's PATCH requests
+5. Reading the Messages tab for alerts from the watch
 
 ## Diagnostics
 
