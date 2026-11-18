@@ -27,7 +27,7 @@ Ideas and open work for upcoming versions. Tick an item when it ships and mentio
 **🧹 Housekeeping**
 
 - [ ] Submit to the HACS default repositories
-- [ ] Clean up the beta/1.0.27 branch
+- [x] Clean up the beta/1.0.27 branch
 
 ## ✨ Features
 
@@ -167,8 +167,6 @@ Review can take months.
 
 ### Clean up the beta/1.0.27 branch
 
-`beta/1.0.27` has been merged into `main` for v1.0.27.
+Done after v1.0.28: the README link in the v1.0.27b1 release notes now points to `main`, and `beta/1.0.27` and `beta/1.0.28` are deleted.
 
-- Point the README link in the v1.0.27b1 release notes to `main`
-- Delete the `beta/1.0.27` branch
-- Optionally document the beta workflow (beta branch + pre-release) for future releases
+- Still open (optional): document the beta workflow (beta branch + pre-release) for future releases
