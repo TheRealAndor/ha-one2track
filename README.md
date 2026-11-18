@@ -1,6 +1,7 @@
 # One2Track — Home Assistant Integration
 
 [![Version](https://img.shields.io/badge/version-1.0.24-blue)](https://github.com/TheRealAndor/ha-one2track)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20me-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/therealandor) [![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white)](https://paypal.me/andorklink)
 
 Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
 
@@ -163,6 +164,13 @@ Call the `one2track.get_raw_device_data` service to get raw data from all source
 - Portal readback before modify operations
 - Persistent settings storage across HA restarts
 - 19 services with full entity/device/area targeting
+
+## Support
+
+If this integration saves you time or makes your smart home a little smarter, consider buying me a coffee. It's completely optional, but very much appreciated! ☕
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/therealandor)
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white)](https://paypal.me/andorklink)
 
 ## Credits
 
