@@ -11,6 +11,6 @@
   "issue_tracker": "https://github.com/TheRealAndor/ha-one2track/issues",
   "requirements": [],
   "ssdp": [],
-  "version": "1.0.27b1",
+  "version": "1.0.27",
   "zeroconf": []
 }
