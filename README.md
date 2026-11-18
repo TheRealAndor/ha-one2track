@@ -32,6 +32,7 @@
 ## 📑 Contents
 
 - [Installation](#installation)
+- [Migrating from jurrienk/ha-one2track](#migrating-from-jurrienkha-one2track)
 - [Supported watches](#supported-watches)
 - [Using the integration](#using-the-integration): [entities](#what-you-get-per-watch), [dashboard](#on-your-dashboard), [actions](#actions), [message events](#message-events), [sending messages](#sending-messages-to-the-watch)
 - [Examples](#examples)
@@ -50,6 +51,9 @@ Or by hand:
 2. Add `https://github.com/TheRealAndor/ha-one2track` with category **Integration**
 3. Search for **One2Track**, install it and restart Home Assistant
 
+> [!TIP]
+> **Coming from jurrienk/ha-one2track?** Follow [Migrating from jurrienk/ha-one2track](#migrating-from-jurrienkha-one2track) below, so your configuration and entities stay.
+
 Then add the integration:
 
 [![Open your Home Assistant instance and start setting up One2Track.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=one2track)
@@ -61,6 +65,83 @@ Or go to **Settings → Devices & services → Add integration**, search for **O
 1. Copy the `custom_components/one2track` folder to your Home Assistant `config/custom_components/` directory
 2. Restart Home Assistant
 3. Add the integration via **Settings → Devices & services**
+
+<a id="migrating-from-jurrienkha-one2track"></a>
+## 🔄 Migrating from jurrienk/ha-one2track
+
+Both integrations use the same `one2track` folder and domain, so your configuration, entities, history and automations stay. Only the source of the integration has to change. The steps depend on where you installed jurrienk/ha-one2track from: the **Marketplace** built into recent Home Assistant versions, or **HACS**.
+
+Make a backup first under *Settings → System → Backups*.
+
+### Home Assistant Marketplace
+
+> [!WARNING]
+> **Never choose "Remove and uninstall"** on the jurrienk entry. That also deletes your One2Track configuration, including all entities and their history.
+
+1. **Add this repository** (`https://github.com/TheRealAndor/ha-one2track`) as a custom repository (type **Integration**) and install **One2Track**. If that works, restart Home Assistant and you are done.
+2. If the install is refused with *"The one2track directory belongs to jurrienk/ha-one2track"*, the jurrienk entry still claims the folder. Release it as follows.
+
+<details>
+<summary><b>Release the folder from the jurrienk entry</b></summary>
+
+**a. Stop Home Assistant Core** from the console of the Home Assistant machine or an SSH connection from your computer (with the SSH add-on, its port must be enabled):
+
+```
+ha core stop
+```
+
+> [!IMPORTANT]
+> Don't use the web terminal inside Home Assistant (*Terminal & SSH* in the sidebar): it runs through Home Assistant Core and stops working as soon as Core is stopped, so you could not start it again from there.
+
+Home Assistant must be stopped, otherwise it overwrites the change below.
+
+**b. Mark the jurrienk entry as not installed.** The file is `.storage/marketplace.repositories` in your configuration folder (`/config` or `/homeassistant`, depending on the add-on). Make a copy first, then change only the entry with `"full_name": "jurrienk/ha-one2track"`:
+
+```diff
+   "full_name": "jurrienk/ha-one2track",
+   ...
+-  "installed_commit": "02859d8",
+-  "installed": true,
++  "installed": false,
+   ...
+-  "version_installed": "v1.0.17",
+```
+
+Or in one go with `jq`:
+
+```bash
+cd /config/.storage
+cp marketplace.repositories marketplace.repositories.bak
+jq '(.data[] | select(.full_name == "jurrienk/ha-one2track"))
+    |= (.installed = false | del(.version_installed, .installed_commit))' \
+  marketplace.repositories.bak > marketplace.repositories
+```
+
+**c. Start Home Assistant Core** again, from the console or SSH:
+
+```
+ha core start
+```
+
+**d. Install One2Track** from this repository. The red message is gone now. Restart Home Assistant once more afterwards.
+
+If something goes wrong, stop Core again, put `marketplace.repositories.bak` back and start Core.
+
+</details>
+
+After the switch, updates come from this repository. The jurrienk entry usually disappears from the list by itself. If it is still there and removing it again offers to delete your configuration, cancel and leave it.
+
+### HACS
+
+In HACS, removing a repository deletes the files in `custom_components/one2track`, but not your configuration. The order matters: remove jurrienk first, then install this repository. The other way around, HACS deletes the files of this repository again.
+
+1. In HACS, open **One2Track** (jurrienk/ha-one2track) and choose **Remove**. Don't restart Home Assistant yet.
+2. Add `https://github.com/TheRealAndor/ha-one2track` as a custom repository (type **Integration**) and download **One2Track**.
+3. Restart Home Assistant. Your One2Track configuration loads again with the new version.
+
+If you restarted between step 1 and 2 by accident, the integration shows as *not loaded*. Your configuration is still there; it loads again after step 2 and 3.
+
+> **Note:** "Steps today" starts counting from the moment you install the new version; from the next day on it matches the One2Track app. If you used the tracker's `battery_level` attribute or the address as the tracker state in automations, switch to the battery sensor or the `address` attribute.
 
 <a id="supported-watches"></a>
 ## ⌚ Supported watches
