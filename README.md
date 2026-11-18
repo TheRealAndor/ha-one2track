@@ -68,19 +68,178 @@ The event type is `sos` when the text contains "SOS", `low_battery` when it ment
 
 The portal is checked once per update (every 60 seconds), so an SOS reaches Home Assistant up to about a minute after it appears in the portal.
 
+The entity's state is the time of the last event, and the UI shows the last event type (for example "SOS") until the next one. Every new message changes the time, so a state trigger fires for each message, also for a second SOS in a row. Exclude `unavailable` as in the [examples](#examples), or the automation also fires when the entity restores its state after a Home Assistant restart. Do not exclude `unknown`: that is the state before the very first event.
+
+## Sending messages to the watch
+
+The `one2track.send_message` action shows a text message on the watch's screen, just like the Messages tab in the portal. Messages can be at most 30 characters; longer ones are refused with an error.
+
+```yaml
+action: one2track.send_message
+target:
+  entity_id: device_tracker.sam
+data:
+  message: "Dinner is ready!"
+```
+
+## Examples
+
+The examples use a watch named **Sam**, so its entities are `device_tracker.sam`, `event.sam_message`, `button.sam_refresh_location` and so on. Replace `sam` with your watch's name, and `notify.mobile_app_my_phone` with your own phone.
+
+### SOS: critical push notification with location
+
+Breaks through silent mode and Do Not Disturb, and links to the watch's position on a map.
+
 ```yaml
 automation:
-  - alias: "Watch alert"
+  - alias: "Sam pressed SOS"
     triggers:
       - trigger: state
         entity_id: event.sam_message
+        not_from: unavailable
+        not_to: unavailable
     conditions:
-      - condition: template
-        value_template: "{{ trigger.to_state.attributes.event_type in ['sos', 'low_battery'] }}"
+      - condition: state
+        entity_id: event.sam_message
+        attribute: event_type
+        state: sos
     actions:
-      - action: notify.notify
+      - action: notify.mobile_app_my_phone
         data:
+          title: "🆘 SOS from Sam"
           message: "{{ trigger.to_state.attributes.message }}"
+          data:
+            url: >-
+              https://maps.google.com/?q={{ state_attr('device_tracker.sam', 'latitude') }},{{ state_attr('device_tracker.sam', 'longitude') }}
+            # iOS: critical alert
+            push:
+              sound:
+                name: default
+                critical: 1
+                volume: 1.0
+            # Android: alarm channel, delivered immediately
+            ttl: 0
+            priority: high
+            channel: alarm_stream
+```
+
+### SOS: get a fresh location and tell Sam help is coming
+
+Asks the watch for a new GPS fix, replies on the watch's screen, and sends the updated position once it arrives.
+
+```yaml
+automation:
+  - alias: "Sam SOS: locate and reply"
+    triggers:
+      - trigger: state
+        entity_id: event.sam_message
+        not_from: unavailable
+        not_to: unavailable
+    conditions:
+      - condition: state
+        entity_id: event.sam_message
+        attribute: event_type
+        state: sos
+    actions:
+      - action: button.press
+        target:
+          entity_id: button.sam_refresh_location
+      - action: one2track.send_message
+        target:
+          entity_id: device_tracker.sam
+        data:
+          message: "Help is on the way!"
+      - wait_for_trigger:
+          - trigger: state
+            entity_id: sensor.sam_last_location_update
+        timeout: "00:05:00"
+      - action: notify.mobile_app_my_phone
+        data:
+          title: "📍 Sam's location"
+          message: "{{ state_attr('device_tracker.sam', 'address') or 'Updated position' }}"
+          data:
+            url: >-
+              https://maps.google.com/?q={{ state_attr('device_tracker.sam', 'latitude') }},{{ state_attr('device_tracker.sam', 'longitude') }}
+```
+
+### SOS: alarm in the house
+
+Flashes the lights red and announces the SOS on your speakers, for when nobody is looking at their phone.
+
+```yaml
+automation:
+  - alias: "Sam SOS: alarm in the house"
+    triggers:
+      - trigger: state
+        entity_id: event.sam_message
+        not_from: unavailable
+        not_to: unavailable
+    conditions:
+      - condition: state
+        entity_id: event.sam_message
+        attribute: event_type
+        state: sos
+    actions:
+      - action: light.turn_on
+        target:
+          area_id: living_room
+        data:
+          color_name: red
+          brightness_pct: 100
+          flash: long
+      - action: tts.speak
+        target:
+          entity_id: tts.home_assistant_cloud
+        data:
+          media_player_entity_id: media_player.living_room
+          message: "Attention! Sam pressed the SOS button."
+```
+
+### Low battery: reminder to charge
+
+```yaml
+automation:
+  - alias: "Sam's watch needs charging"
+    triggers:
+      - trigger: state
+        entity_id: event.sam_message
+        not_from: unavailable
+        not_to: unavailable
+    conditions:
+      - condition: state
+        entity_id: event.sam_message
+        attribute: event_type
+        state: low_battery
+    actions:
+      - action: notify.mobile_app_my_phone
+        data:
+          message: "🔋 Sam's watch is almost empty, time to charge it."
+```
+
+### Time to come home
+
+Sends a message to the watch at 18:00 on weekdays, only when Sam is not home yet.
+
+```yaml
+automation:
+  - alias: "Sam, time to come home"
+    triggers:
+      - trigger: time
+        at: "18:00:00"
+    conditions:
+      - condition: time
+        weekday: [mon, tue, wed, thu, fri]
+      - condition: not
+        conditions:
+          - condition: state
+            entity_id: device_tracker.sam
+            state: home
+    actions:
+      - action: one2track.send_message
+        target:
+          entity_id: device_tracker.sam
+        data:
+          message: "Time to come home!"
 ```
 
 ## Diagnostics
@@ -89,120 +248,7 @@ Call the `one2track.get_raw_device_data` service to get raw data from all source
 
 ## Changelog
 
-### v1.0.27b1 (2026-11-18, pre-release)
-
-- **New:** Message event entity per watch, firing for each new message from the watch in the portal's Messages tab (`sos`, `low_battery`, `message`)
-- **New:** Re-authentication: when the password stops working, Home Assistant asks for the new one instead of failing
-- **Fix:** An expired portal session no longer counts as a wrong password; the integration logs in again first
-- **Fix:** `send_message` rejects messages longer than the portal's limit of 30 characters
-
-### v1.0.26 (2026-11-18)
-
-- **Change:** HACS name is now "One2Track"
-- **Docs:** Added `presence_location.trackers` category to the manifest
-- **CI:** HACS and hassfest validation on every push
-
-### v1.0.25 (2026-11-16)
-
-- **Fix:** Recognise Connect NEXT watches reporting model ID 277 instead of showing `Unknown (277)` ([#1](https://github.com/TheRealAndor/ha-one2track/issues/1))
-
-### v1.0.24 (2026-10-16)
-
-- **Fix:** "Steps today" is now calculated from the watch's running step counter (`meta_data.steps`) minus the last reading of the previous day. The portal's `step_count_day` field was stale (Connect MOVE) or empty (Connect NEXT) and is no longer used. On the day of installing, steps are counted from that moment on
-- **New:** "Steps total" sensor with the watch's cumulative step counter
-
-### v1.0.23 (2026-10-16)
-
-- **Fix:** Profile mode and GPS interval selects now show as unknown when the portal reports no active option, instead of falsely showing the first option (seen on Connect NEXT)
-- **Docs:** Documented Connect NEXT command codes
-
-### v1.0.22 (2026-10-16)
-
-- **New:** Recognise Connect NEXT watches (model ID 201) instead of showing `Unknown (201)`
-
-### v1.0.21 (2026-10-16)
-
-- **New:** Bundled One2Track icon and logo (light and dark) in `brand/`, shown on the integrations page from HA 2026.3
-
-### v1.0.20 (2026-10-16)
-
-- **Fix:** Removed deprecated `battery_level` and `location_name` overrides from the device tracker (unsupported from HA 2027.7). Use the battery sensor for the battery level; the `address` attribute still holds the current address
-- **Change:** The tracker state is now determined by Home Assistant from the coordinates: `home`, the zone name, or `not_home`. Outside a zone the state is no longer the street address
-
-### v1.0.19 (2026-10-16)
-
-- **Fix:** Import `TrackerEntity` from `homeassistant.components.device_tracker` instead of the deprecated `device_tracker.config_entry` alias (removed in HA 2027.6)
-- **Fix:** `source_type` now returns `SourceType.GPS` instead of the raw string
-
-### v1.0.18 (2026-10-16)
-
-- Forked to [TheRealAndor/ha-one2track](https://github.com/TheRealAndor/ha-one2track); manifest, HACS URL and code owner updated
-- **Docs:** Removed reference to missing TESTING.md
-
-### v1.0.17 (2026-03-21)
-
-- **Fix:** Zone detection now returns the zone slug (e.g. `home`) instead of the display name (`Home`), fixing person tile not turning green when in the home zone
-### v1.0.15 (2026-03-16)
-
-- **Fix:** Transient server errors (e.g. HTTP 503) during setup now raise `ConfigEntryNotReady` so Home Assistant automatically retries instead of marking the integration as permanently failed
-
-### v1.0.13 (2026-03-16)
-
-- **Docs:** Added git workflow rules to CLAUDE.md
-
-### v1.0.8 (2026-03-16)
-
-- **Fix:** Phonebook and whitelist attributes now always exposed on device tracker (empty list when no data, instead of missing)
-- **Improvement:** Device entries now include manufacturer ("One2Track") and model name from the portal
-
-### v1.0.7 (2026-03-16)
-
-- **Fix:** Added missing `remote_shutdown` translation to `en.json`
-- **Housekeeping:** Added `__pycache__` and `.private/` to `.gitignore`
-
-### v1.0.6 (2026-03-16)
-
-- **Docs:** Added test safety section to TESTING.md — snapshot and restore device state
-
-### v1.0.5 (2026-03-16)
-
-- **Improvement:** Select entities (GPS interval, profile mode) now appear in the Configuration section on the device page
-- **Fix:** Reverted step counter switch change that broke functionality — restored assumed state behavior
-
-### v1.0.4 (2026-03-15)
-
-- **Feature:** Added remote shutdown button entity (disabled by default — must be manually enabled per device to prevent accidental use)
-
-### v1.0.3 (2026-03-15)
-
-- **Fix:** `last_location_update` sensor now guards against corrupt device RTC timestamps (e.g. 10 years in the future). Falls back to server-stamped `created_at` with a warning log when the device-reported value is more than 24 hours in the future.
-
-### v1.0.2 (2026-03-15)
-
-- **Docs:** Aligned version numbers across all documentation (README, TESTING.md, manifest)
-- **Docs:** Added privacy guidelines to CLAUDE.md to prevent leaking private device/entity information
-
-### v1.0.1 (2026-03-15)
-
-- **Docs:** Removed personal name references from documentation
-
-### v1.0.0 (2026-03-15)
-
-- **Fix:** Alarm values synced from portal are now validated — malformed values (e.g. JavaScript template fragments) are discarded and local state is preserved
-- **Fix:** `add_phonebook_contact` no longer raises a false error when the portal returns HTTP 500 on a successful write — local state is updated optimistically
-- **Fix:** All service validation errors now use `ServiceValidationError` for proper HA UI error display instead of raw 500 messages
-- **Fix:** `intercom` and `change_password` capability errors now show the device name and a clear message about Connect MOVE requirement
-- **Fix:** `alarms` and `quiet_times` attributes are always present on the device tracker (empty list `[]` when cleared, instead of disappearing)
-- **Fix:** Test plan device model labels corrected to match device models (Connect UP, Connect MOVE)
-- **Improvement:** Heading sensor satellite_count comparison is now type-safe
-- **Improvement:** Whitelist full error message now suggests using `set_whitelist` as an alternative
-
-### v0.9.9
-
-- Individual phonebook/whitelist management (add/remove contacts and numbers)
-- Portal readback before modify operations
-- Persistent settings storage across HA restarts
-- 19 services with full entity/device/area targeting
+See the [releases page](https://github.com/TheRealAndor/ha-one2track/releases) for what changed in each version; HACS shows the same notes when an update is available. For versions before v1.0.18, see the [original repository](https://github.com/jurrienk/ha-one2track).
 
 ## Support
 
