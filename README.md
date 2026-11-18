@@ -1,58 +1,83 @@
-# One2Track — Home Assistant Integration
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TheRealAndor/ha-one2track/main/custom_components/one2track/brand/dark_logo.png">
+    <img src="https://raw.githubusercontent.com/TheRealAndor/ha-one2track/main/custom_components/one2track/brand/logo.png" alt="One2Track" width="400">
+  </picture>
+</p>
 
-[![Release](https://img.shields.io/github/v/release/TheRealAndor/ha-one2track)](https://github.com/TheRealAndor/ha-one2track/releases)
-[![Validate](https://github.com/TheRealAndor/ha-one2track/actions/workflows/validate.yml/badge.svg)](https://github.com/TheRealAndor/ha-one2track/actions/workflows/validate.yml)
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20me-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/therealandor) [![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white)](https://paypal.me/andorklink)
+<h3 align="center">Keep an eye on the ones who matter, right from Home Assistant</h3>
 
-Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) GPS watches (children's and elderly trackers).
+<p align="center">
+  Live location, battery, SOS alerts and two-way messages for One2Track GPS watches for kids and seniors.
+</p>
 
-## Features
+<p align="center">
+  <a href="https://github.com/TheRealAndor/ha-one2track/releases"><img src="https://img.shields.io/github/v/release/TheRealAndor/ha-one2track" alt="Release"></a>
+  <a href="https://hacs.xyz"><img src="https://img.shields.io/badge/HACS-Custom-41BDF5" alt="HACS"></a>
+  <a href="https://github.com/TheRealAndor/ha-one2track/actions/workflows/validate.yml"><img src="https://github.com/TheRealAndor/ha-one2track/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
+  <a href="https://ko-fi.com/therealandor"><img src="https://img.shields.io/badge/Ko--fi-Support%20me-FF5E5B?logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
+  <a href="https://paypal.me/andorklink"><img src="https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white" alt="PayPal"></a>
+</p>
 
-- **Device tracker** with GPS coordinates, zone detection, and address
-- **15 sensors** — battery, SIM balance, signal strength, satellite count, speed, altitude, heading, GPS accuracy, steps today, steps total, status, timestamps, phonebook contact count, and whitelist number count (last two are model-dependent)
-- **Phonebook & whitelist sensors** — show contact/number count with full list as attributes (only created if the device supports these features)
-- **Binary sensor** — fall detection
-- **Message event** — fires for each new message from the watch in the portal's Messages tab (event types `low_battery`, `sos`, `message`)
-- **Buttons** — refresh location (activate GPS mode), find device (ring the watch)
-- **Switch** — step counter toggle
-- **Selects** — GPS tracking interval, profile/sound mode
-- **19 services** — send message, force update, find device, intercom, set SOS number, set/add/remove phonebook contacts, set/add/remove whitelist numbers, set alarms, set quiet times, set language/timezone, change password, factory reset, remote shutdown, and a raw diagnostics service
-- **Multi-model support** — automatically discovers each watch's capabilities (Connect MOVE, Connect UP, Connect NEXT, and others)
-- **Device targeting** — all services support `entity_id`, `device_id`, and `area_id` targeting
-- **Persistent settings** — phonebook, whitelist, alarms, and quiet times survive HA restarts
+## ✨ Highlights
 
-## Installation
+- 📍 **Live location** on your map, with zones and street address
+- 🆘 **SOS and low-battery alerts** as events, ready for your automations
+- 💬 **Send messages** from Home Assistant straight to the watch's screen
+- 🔔 **Find the watch** by making it ring, or get a fresh GPS fix with one tap
+- ⚙️ **Manage the watch**: phonebook, quiet times, alarms, GPS interval, sound profile and more
+- 🧠 **Works across models**: each watch's features are discovered automatically
+- 🔑 **Password changed?** Home Assistant simply asks for the new one
+
+## 📑 Contents
+
+- [Installation](#installation)
+- [Supported watches](#supported-watches)
+- [Using the integration](#using-the-integration): [entities](#what-you-get-per-watch), [dashboard](#on-your-dashboard), [actions](#actions), [message events](#message-events), [sending messages](#sending-messages-to-the-watch)
+- [Examples](#examples)
+- [Troubleshooting](#diagnostics)
+
+<a id="installation"></a>
+## 🚀 Installation
 
 ### HACS (recommended)
 
-1. Open HACS in your Home Assistant instance
-2. Go to **Integrations** and click the three-dot menu in the top right
-3. Select **Custom repositories**
-4. Add `https://github.com/TheRealAndor/ha-one2track` with category **Integration**
-5. Search for "One2Track" and install it
-6. Restart Home Assistant
-7. Go to **Settings > Devices & Services > Add Integration** and search for **One2Track**
-8. Enter your One2Track portal username and password
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=TheRealAndor&repository=ha-one2track&category=integration)
+
+Or by hand:
+
+1. Open HACS, click the three-dot menu in the top right and choose **Custom repositories**
+2. Add `https://github.com/TheRealAndor/ha-one2track` with category **Integration**
+3. Search for **One2Track**, install it and restart Home Assistant
+
+Then add the integration:
+
+[![Open your Home Assistant instance and start setting up One2Track.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=one2track)
+
+Or go to **Settings → Devices & services → Add integration**, search for **One2Track** and log in with your One2Track portal username and password. All watches on your account appear automatically.
 
 ### Manual
 
 1. Copy the `custom_components/one2track` folder to your Home Assistant `config/custom_components/` directory
 2. Restart Home Assistant
-3. Add the integration via **Settings > Devices & Services**
+3. Add the integration via **Settings → Devices & services**
 
-## Supported Devices
+<a id="supported-watches"></a>
+## ⌚ Supported watches
 
-The integration auto-discovers your watches and their capabilities. Tested with:
+| Model | Model ID | Notes |
+|---|---|---|
+| **Connect MOVE** | 27 | All features, including whitelist, intercom and PIN change |
+| **Connect UP** | 77 | GPS interval and step counter |
+| **Connect NEXT** | 201, 277 | GPS interval (5 min, 10 min, 1 hour) and step counter; no whitelist, intercom or PIN change |
 
-- **Connect UP** (model_id 77) — GPS interval code 0077, step counter code 0082
-- **Connect MOVE** (model_id 27) — GPS interval code 0078, step counter code 0079, plus whitelist, intercom, and password change
-- **Connect NEXT** (model_id 201 or 277) — GPS interval code 0077 (5 min / 10 min / 1 hour), step counter code 0082; no whitelist, intercom or password change
+Other One2Track watches should work too: the integration asks each watch which functions it supports instead of relying on a fixed list per model. Got a model that shows up as `Unknown`? Please [open an issue](https://github.com/TheRealAndor/ha-one2track/issues).
 
-Other One2Track watch models should work — the integration discovers available commands dynamically rather than hardcoding per model.
+<a id="using-the-integration"></a>
+## 🧭 Using the integration
 
-## Using the integration
-
-### What you get per watch
+<a id="what-you-get-per-watch"></a>
+### 📦 What you get per watch
 
 Each watch becomes a device in Home Assistant, named after the watch in the One2Track app. The entity IDs below are for a watch named **Sam**.
 
@@ -75,7 +100,8 @@ Each watch becomes a device in Home Assistant, named after the watch in the One2
 
 The options of the selects come from the watch itself, so they differ per model and use the language of your One2Track account.
 
-### On your dashboard
+<a id="on-your-dashboard"></a>
+### 🖥️ On your dashboard
 
 A map and the most useful controls in one view:
 
@@ -96,7 +122,8 @@ cards:
       - button.sam_find_device
 ```
 
-### Actions
+<a id="actions"></a>
+### 🎮 Actions
 
 All actions start with `one2track.` and take the watch as target: an `entity_id` of any of its entities, a `device_id` or an `area_id`. Try them out in **Developer tools → Actions**.
 
@@ -116,9 +143,12 @@ All actions start with `one2track.` and take the watch as target: an `entity_id`
 | `factory_reset` | ⚠️ Resets the watch to factory settings. Cannot be undone |
 | `remote_shutdown` | ⚠️ Turns the watch off. It cannot be turned on again remotely |
 | `send_device_command` | Sends a raw command code, for advanced use |
-| `get_raw_device_data` | Returns all raw data for troubleshooting, see [Diagnostics](#diagnostics) |
+| `get_raw_device_data` | Returns all raw data for troubleshooting, see [Troubleshooting](#diagnostics) |
 
 A few examples:
+
+<details>
+<summary>Show examples</summary>
 
 ```yaml
 # Contacts on the watch (replaces the whole list)
@@ -165,7 +195,10 @@ data:
   phone_number: "0031612345678"
 ```
 
-### Message events
+</details>
+
+<a id="message-events"></a>
+### 🆘 Message events
 
 Each watch gets an event entity (`event.<name>_message`) that fires when a new message from the watch appears in the portal's Messages tab, such as "Sam heeft op de SOS knop gedrukt!". The event data holds `message`, `sender`, `sent_at` (minute precision, in Home Assistant's time zone) and `urgent` (true when the portal shows the message in red, as it does for SOS). Messages you send to the watch are not fired. On first setup, existing messages are marked as seen and do not fire.
 
@@ -175,7 +208,8 @@ The portal is checked once per update (every 60 seconds), so an SOS reaches Home
 
 The entity's state is the time of the last event, and the UI shows the last event type (for example "SOS") until the next one. Every new message changes the time, so a state trigger fires for each message, also for a second SOS in a row. Exclude `unavailable` as in the [examples](#examples), or the automation also fires when the entity restores its state after a Home Assistant restart. Do not exclude `unknown`: that is the state before the very first event.
 
-### Sending messages to the watch
+<a id="sending-messages-to-the-watch"></a>
+### 💬 Sending messages to the watch
 
 The `one2track.send_message` action shows a text message on the watch's screen, just like the Messages tab in the portal. Messages can be at most 30 characters; longer ones are refused with an error.
 
@@ -187,17 +221,22 @@ data:
   message: "Dinner is ready!"
 ```
 
-### When your password changes
+<a id="when-your-password-changes"></a>
+### 🔑 When your password changes
 
 When the stored One2Track password stops working, Home Assistant shows a **Re-authenticate** notification. Click it and enter the new password; the integration reloads and all entities, history and automations stay as they were.
 
-## Examples
+<a id="examples"></a>
+## 💡 Examples
 
-The examples use a watch named **Sam**, so its entities are `device_tracker.sam`, `event.sam_message`, `button.sam_refresh_location` and so on. Replace `sam` with your watch's name, and `notify.mobile_app_my_phone` with your own phone.
+The examples use a watch named **Sam**, so its entities are `device_tracker.sam`, `event.sam_message`, `button.sam_refresh_location` and so on. Replace `sam` with your watch's name, and `notify.mobile_app_my_phone` with your own phone. Click **Show YAML** to copy an automation.
 
-### SOS: critical push notification with location
+### 🆘 SOS: critical push notification with location
 
 Breaks through silent mode and Do Not Disturb, and links to the watch's position on a map.
+
+<details>
+<summary>Show YAML</summary>
 
 ```yaml
 automation:
@@ -232,9 +271,14 @@ automation:
             channel: alarm_stream
 ```
 
-### SOS: get a fresh location and tell Sam help is coming
+</details>
+
+### 📍 SOS: get a fresh location and tell Sam help is coming
 
 Asks the watch for a new GPS fix, replies on the watch's screen, and sends the updated position once it arrives.
+
+<details>
+<summary>Show YAML</summary>
 
 ```yaml
 automation:
@@ -271,9 +315,14 @@ automation:
               https://maps.google.com/?q={{ state_attr('device_tracker.sam', 'latitude') }},{{ state_attr('device_tracker.sam', 'longitude') }}
 ```
 
-### SOS: alarm in the house
+</details>
+
+### 🚨 SOS: alarm in the house
 
 Flashes the lights red and announces the SOS on your speakers, for when nobody is looking at their phone.
+
+<details>
+<summary>Show YAML</summary>
 
 ```yaml
 automation:
@@ -304,7 +353,14 @@ automation:
           message: "Attention! Sam pressed the SOS button."
 ```
 
-### Low battery: reminder to charge
+</details>
+
+### 🔋 Low battery: reminder to charge
+
+A nudge on your phone when the watch runs low.
+
+<details>
+<summary>Show YAML</summary>
 
 ```yaml
 automation:
@@ -325,9 +381,14 @@ automation:
           message: "🔋 Sam's watch is almost empty, time to charge it."
 ```
 
-### Time to come home
+</details>
+
+### 🏠 Time to come home
 
 Sends a message to the watch at 18:00 on weekdays, only when Sam is not home yet.
+
+<details>
+<summary>Show YAML</summary>
 
 ```yaml
 automation:
@@ -351,7 +412,16 @@ automation:
           message: "Time to come home!"
 ```
 
-## How It Works
+</details>
+
+<a id="diagnostics"></a>
+## 🩺 Troubleshooting
+
+Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
+
+To see what the integration is doing, open **Settings → Devices & services → One2Track**, click the three-dot menu and choose **Enable debug logging**. Disable it again to download the log, and attach it to your issue.
+
+## 🔧 How it works
 
 There is no official One2Track API. This integration communicates with `www.one2trackgps.com` (a Ruby on Rails web application) by:
 
@@ -361,21 +431,17 @@ There is no official One2Track API. This integration communicates with `www.one2
 4. Sending commands via form POSTs that mimic the web portal's PATCH requests
 5. Reading the Messages tab for alerts from the watch
 
-## Diagnostics
-
-Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
-
-## Changelog
+## 📜 Changelog
 
 See the [releases page](https://github.com/TheRealAndor/ha-one2track/releases) for what changed in each version; HACS shows the same notes when an update is available. For versions before v1.0.18, see the [original repository](https://github.com/jurrienk/ha-one2track).
 
-## Support
+## ☕ Support
 
 If this integration saves you time or makes your smart home a little smarter, consider buying me a coffee. It's completely optional, but very much appreciated! ☕
 
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/therealandor)
 [![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white)](https://paypal.me/andorklink)
 
-## Credits
+## 🙏 Credits
 
 This is a maintained fork of [jurrienk/ha-one2track](https://github.com/jurrienk/ha-one2track), which is no longer actively maintained.
