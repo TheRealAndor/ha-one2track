@@ -189,7 +189,7 @@ Silver rule `parallel-updates`: set `PARALLEL_UPDATES` in every platform module.
 
 ### Document the setup fields
 
-Silver rule `docs-installation-parameters`: describe each field of the setup and re-authentication dialog in the README (username: the e-mail address of the One2Track portal account; password), with `data_description` texts in `translations/en.json`.
+Silver rule `docs-installation-parameters`: describe each field of the setup and re-authentication dialog in the README (username and password of the One2Track portal account; check whether the portal accepts the e-mail address as username), with `data_description` texts in `translations/en.json`.
 
 ### Check unavailable handling and logging
 
