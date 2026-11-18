@@ -65,7 +65,13 @@
         "name": "Heading"
       },
       "status": {
-        "name": "Status"
+        "name": "Status",
+        "state": {
+          "gps": "GPS",
+          "wifi": "Wi-Fi",
+          "lbs": "Cell towers (LBS)",
+          "offline": "Offline"
+        }
       },
       "phonebook": {
         "name": "Phonebook"

@@ -245,6 +245,10 @@ class One2TrackCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
                         self._alarms[uuid] = valid_alarms
                         synced_any = True
                         LOGGER.debug("Synced %d alarms for %s", len(valid_alarms), uuid)
+                    elif all("' +" in v or "+ '" in v for v in values if v):
+                        # Only the portal's JavaScript row template, i.e. no
+                        # alarms are set on the watch: nothing to sync.
+                        LOGGER.debug("No alarms set in the portal for %s", uuid)
                     elif values:
                         LOGGER.warning(
                             "Alarm values from portal for %s appear malformed "

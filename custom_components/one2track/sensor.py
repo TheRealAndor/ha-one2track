@@ -59,6 +59,32 @@ def _steps_counter(data: dict) -> int | None:
         return None
 
 
+STATUS_OPTIONS = ["gps", "wifi", "lbs", "offline"]
+_unknown_statuses: set[str] = set()
+
+
+def _status(data: dict) -> str | None:
+    """Return the location source, or None for a value we do not know yet.
+
+    An ENUM sensor raises ValueError for a state outside its options, so an
+    unexpected portal value is logged once and reported as unknown.
+    """
+    raw = data.get("status")
+    if not raw:
+        return None
+    value = str(raw).lower()
+    if value in STATUS_OPTIONS:
+        return value
+    if value not in _unknown_statuses:
+        _unknown_statuses.add(value)
+        LOGGER.warning(
+            "Unknown status %r from the One2Track portal; please report it at "
+            "https://github.com/TheRealAndor/ha-one2track/issues",
+            raw,
+        )
+    return None
+
+
 _MAX_FUTURE = timedelta(hours=24)
 
 
@@ -201,9 +227,9 @@ SENSOR_DESCRIPTIONS: tuple[One2TrackSensorDescription, ...] = (
         key="status",
         translation_key="status",
         device_class=SensorDeviceClass.ENUM,
-        options=["gps", "wifi", "offline"],
+        options=STATUS_OPTIONS,
         icon="mdi:access-point-network",
-        value_fn=lambda d: str(v).lower() if (v := d.get("status")) else None,
+        value_fn=_status,
     ),
 )
 
