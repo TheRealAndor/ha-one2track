@@ -8,6 +8,9 @@ DOMAIN = "one2track"
 
 DEFAULT_UPDATE_INTERVAL_SECONDS = 60
 
+# The portal's message box accepts at most 30 characters
+MESSAGE_MAX_LENGTH = 30
+
 BASE_URL = "https://www.one2trackgps.com"
 LOGIN_URL = f"{BASE_URL}/auth/users/sign_in"
 SESSION_COOKIE = "_iadmin"

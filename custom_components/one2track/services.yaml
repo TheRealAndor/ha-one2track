@@ -10,7 +10,7 @@ send_message:
   fields:
     message:
       name: Message
-      description: The text message to send to the device
+      description: The text message to send to the device (at most 30 characters)
       required: true
       example: "Time to come home!"
       selector:

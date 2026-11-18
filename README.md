@@ -12,6 +12,7 @@ Custom Home Assistant integration for [One2Track](https://www.one2trackgps.com) 
 - **15 sensors** — battery, SIM balance, signal strength, satellite count, speed, altitude, heading, GPS accuracy, steps today, steps total, status, timestamps, phonebook contact count, and whitelist number count (last two are model-dependent)
 - **Phonebook & whitelist sensors** — show contact/number count with full list as attributes (only created if the device supports these features)
 - **Binary sensor** — fall detection
+- **Message event** — fires for each new message from the watch in the portal's Messages tab (event types `low_battery`, `sos`, `message`)
 - **Buttons** — refresh location (activate GPS mode), find device (ring the watch)
 - **Switch** — step counter toggle
 - **Selects** — GPS tracking interval, profile/sound mode
@@ -57,12 +58,43 @@ There is no official One2Track API. This integration communicates with `www.one2
 2. Polling device state by scraping inline JavaScript variables from device pages
 3. Refreshing base data from the JSON device list endpoint
 4. Sending commands via form POSTs that mimic the web portal's PATCH requests
+5. Reading the Messages tab for alerts from the watch
+
+## Message events
+
+Each watch gets an event entity (`event.<name>_message`) that fires when a new message from the watch appears in the portal's Messages tab, such as "Sam heeft op de SOS knop gedrukt!". The event data holds `message`, `sender`, `sent_at` (minute precision, in Home Assistant's time zone) and `urgent` (true when the portal shows the message in red, as it does for SOS). Messages you send to the watch are not fired. On first setup, existing messages are marked as seen and do not fire.
+
+The event type is `sos` when the text contains "SOS", `low_battery` when it mentions a low battery, and `message` otherwise. The Dutch SOS and low-battery texts have been confirmed; for other alerts or languages, please open an issue with the exact text.
+
+The portal is checked once per update (every 60 seconds), so an SOS reaches Home Assistant up to about a minute after it appears in the portal.
+
+```yaml
+automation:
+  - alias: "Watch alert"
+    triggers:
+      - trigger: state
+        entity_id: event.sam_message
+    conditions:
+      - condition: template
+        value_template: "{{ trigger.to_state.attributes.event_type in ['sos', 'low_battery'] }}"
+    actions:
+      - action: notify.notify
+        data:
+          message: "{{ trigger.to_state.attributes.message }}"
+```
 
 ## Diagnostics
 
 Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
 
 ## Changelog
+
+### v1.0.27b1 (2026-11-18, pre-release)
+
+- **New:** Message event entity per watch, firing for each new message from the watch in the portal's Messages tab (`sos`, `low_battery`, `message`)
+- **New:** Re-authentication: when the password stops working, Home Assistant asks for the new one instead of failing
+- **Fix:** An expired portal session no longer counts as a wrong password; the integration logs in again first
+- **Fix:** `send_message` rejects messages longer than the portal's limit of 30 characters
 
 ### v1.0.26 (2026-11-18)
 

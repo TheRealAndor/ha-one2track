@@ -24,6 +24,7 @@ from .const import (
     CMD_WHITELIST_2,
     DOMAIN,
     LOGGER,
+    MESSAGE_MAX_LENGTH,
 )
 from .coordinator import One2TrackCoordinator
 
@@ -430,7 +431,14 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         DOMAIN, SERVICE_SEND_MESSAGE, handle_send_message,
         schema=vol.Schema({
             **TARGET_KEYS,
-            vol.Required("message"): str,
+            vol.Required("message"): vol.All(
+                str,
+                vol.Length(
+                    min=1,
+                    max=MESSAGE_MAX_LENGTH,
+                    msg=f"Message must be 1 to {MESSAGE_MAX_LENGTH} characters",
+                ),
+            ),
         }),
     )
     hass.services.async_register(

@@ -9,6 +9,13 @@
                     "password": "Password"
                 },
                 "description": "Enter your One2Track account credentials."
+            },
+            "reauth_confirm": {
+                "title": "Re-authenticate",
+                "description": "The password for {username} no longer works. Enter the current One2Track password.",
+                "data": {
+                    "password": "Password"
+                }
             }
         },
         "error": {
@@ -17,7 +24,9 @@
             "unknown": "Unexpected error"
         },
         "abort": {
-            "already_configured": "Account is already configured"
+            "already_configured": "Account is already configured",
+            "reauth_successful": "Re-authentication was successful",
+            "wrong_account": "These credentials belong to a different One2Track account."
         }
     },
     "entity": {
@@ -71,6 +80,20 @@
         "binary_sensor": {
             "tumble": {
                 "name": "Fall detected"
+            }
+        },
+        "event": {
+            "message": {
+                "name": "Message",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "low_battery": "Low battery",
+                            "sos": "SOS",
+                            "message": "Message"
+                        }
+                    }
+                }
             }
         },
         "button": {

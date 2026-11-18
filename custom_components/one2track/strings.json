@@ -6,6 +6,13 @@
           "username": "[%key:common::config_flow::data::username%]",
           "password": "[%key:common::config_flow::data::password%]"
         }
+      },
+      "reauth_confirm": {
+        "title": "[%key:common::config_flow::title::reauth%]",
+        "description": "The password for {username} no longer works. Enter the current One2Track password.",
+        "data": {
+          "password": "[%key:common::config_flow::data::password%]"
+        }
       }
     },
     "error": {
@@ -14,7 +21,9 @@
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]",
+      "wrong_account": "These credentials belong to a different One2Track account."
     }
   },
   "entity": {
@@ -68,6 +77,20 @@
     "binary_sensor": {
       "tumble": {
         "name": "Fall detected"
+      }
+    },
+    "event": {
+      "message": {
+        "name": "Message",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "low_battery": "Low battery",
+              "sos": "SOS",
+              "message": "Message"
+            }
+          }
+        }
       }
     },
     "button": {

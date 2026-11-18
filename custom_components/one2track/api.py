@@ -616,6 +616,93 @@ class One2TrackApiClient:
 
         return resp.status == 200
 
+    async def async_get_messages(self, uuid: str) -> list[dict[str, str]]:
+        """Fetch the newest page of messages shown in the portal's Messages tab.
+
+        The portal only serves this as HTML or a Turbo stream (JSON gives 406).
+        Returns messages oldest first, each with date (YYYY-MM-DD), time
+        (HH:MM, portal local time), sender, text and direction (CSS class).
+        """
+        await self._async_ensure_authenticated()
+        url = f"{BASE_URL}/devices/{uuid}/messages"
+
+        try:
+            async with async_timeout.timeout(15):
+                resp = await self._session.get(
+                    url,
+                    headers={"accept": "text/vnd.turbo-stream.html, text/html"},
+                    cookies=self._cookies(),
+                )
+                body = await resp.text()
+        except TimeoutError as exc:
+            raise One2TrackApiClientCommunicationError(
+                f"Timeout fetching messages for {uuid}"
+            ) from exc
+        except (aiohttp.ClientError, socket.gaierror) as exc:
+            raise One2TrackApiClientCommunicationError(
+                f"Error fetching messages for {uuid}: {exc}"
+            ) from exc
+
+        if resp.status in (401, 302) or "sign_in" in str(resp.url):
+            self._cookie = ""
+            raise One2TrackApiClientAuthenticationError("Session expired")
+        if resp.status != 200:
+            raise One2TrackApiClientCommunicationError(
+                f"Messages for {uuid} returned {resp.status}"
+            )
+        return self._parse_messages(body)
+
+    # A date badge, or the start of one message block
+    _MESSAGE_TOKEN_RE = re.compile(
+        r"m-badge--wide['\"]>\s*(?P<date>\d{2}-\d{2}-\d{4})"
+        r"|device-message\s+m-widget4\s+(?P<direction>[\w-]+)['\"]"
+    )
+    # Searched only within one block, so a missing field never matches the next one
+    _MESSAGE_SENDER_RE = re.compile(r"\bname['\"]>\s*(.*?)\s*</span>", re.S)
+    _MESSAGE_TEXT_RE = re.compile(
+        r"class=['\"]m-widget4__message\b(?P<cls>[^'\"]*)['\"][^>]*>\s*(?P<text>.*?)\s*</div>",
+        re.S,
+    )
+    _MESSAGE_TIME_RE = re.compile(r"m-widget4__sub['\"]>\s*(\d{1,2}):(\d{2})")
+
+    @classmethod
+    def _parse_messages(cls, html: str) -> list[dict[str, Any]]:
+        """Parse date badges and message blocks, in page order.
+
+        Seen in the portal: messages from the watch have class "ltr"; messages
+        sent from the portal have "rtl", the account holder as sender and
+        "Verstuurd" after the time; alerts such as SOS add "m--font-danger".
+        """
+        messages: list[dict[str, Any]] = []
+        tokens = list(cls._MESSAGE_TOKEN_RE.finditer(html))
+        date = ""
+        for i, token in enumerate(tokens):
+            if token.group("date"):
+                day, month, year = token.group("date").split("-")
+                date = f"{year}-{month}-{day}"
+                continue
+            end = tokens[i + 1].start() if i + 1 < len(tokens) else len(html)
+            block = html[token.end():end]
+            sender = cls._MESSAGE_SENDER_RE.search(block)
+            text = cls._MESSAGE_TEXT_RE.search(block)
+            time = cls._MESSAGE_TIME_RE.search(block)
+            if not (date and text and time):
+                LOGGER.debug("Skipping unparsable message block: %s", block[:200])
+                continue
+            messages.append({
+                "date": date,
+                "time": f"{int(time.group(1)):02d}:{time.group(2)}",
+                "sender": cls._strip_html(sender.group(1)) if sender else "",
+                "text": cls._strip_html(text.group("text")),
+                "direction": token.group("direction"),
+                "urgent": "m--font-danger" in text.group("cls"),
+            })
+        return messages
+
+    @staticmethod
+    def _strip_html(fragment: str) -> str:
+        return " ".join(unescape(re.sub(r"<[^>]+>", " ", fragment)).split())
+
     # ── Raw data (for diagnostics / testing) ───────────────────────
 
     async def async_get_raw_device_data(self, uuid: str) -> dict[str, Any]:

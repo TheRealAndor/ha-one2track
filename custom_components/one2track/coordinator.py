@@ -68,6 +68,10 @@ class One2TrackCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
         self._quiet_times: dict[str, list[dict[str, str]]] = {}
         # Track which devices have synced settings (vs. unknown state)
         self._settings_synced: dict[str, bool] = {}
+        # Newest portal message seen per device: {uuid: {"last": "YYYY-MM-DD HH:MM",
+        # "keys": [...]}}. Messages have no ID, so anything newer than "last", or
+        # at "last" with an unseen key, is new. Missing uuid = not seeded yet.
+        self._message_marks: dict[str, dict[str, Any]] = {}
         # Persistent storage for settings across HA restarts
         self._store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
 
@@ -166,6 +170,7 @@ class One2TrackCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
             "alarms": self._alarms,
             "quiet_times": self._quiet_times,
             "synced": self._settings_synced,
+            "message_marks": self._message_marks,
         })
 
     async def _async_load_settings(self) -> None:
@@ -178,6 +183,7 @@ class One2TrackCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
         self._alarms = data.get("alarms", {})
         self._quiet_times = data.get("quiet_times", {})
         self._settings_synced = data.get("synced", {})
+        self._message_marks = data.get("message_marks", {})
         LOGGER.debug("Loaded persisted settings for %d devices", len(self._settings_synced))
 
     # ── Portal readback (best-effort sync of current settings) ────────
@@ -280,6 +286,56 @@ class One2TrackCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
         """
         await self._async_sync_device_settings(uuid)
 
+    # ── Portal messages ───────────────────────────────────────────────
+
+    def get_new_messages(self, uuid: str) -> list[dict[str, str]]:
+        """Return the messages that arrived in the last update."""
+        if not self.data:
+            return []
+        return list(self.data.get(uuid, {}).get("new_messages", []))
+
+    async def _async_fetch_new_messages(self, uuid: str) -> list[dict[str, str]]:
+        """Fetch portal messages and return the ones not seen before.
+
+        On the first run for a device, existing messages are only marked as
+        seen, so installing the integration does not replay old alerts.
+        """
+        try:
+            messages = await self.client.async_get_messages(uuid)
+        except One2TrackApiClientError as exc:
+            LOGGER.debug("Could not fetch messages for %s: %s", uuid, exc)
+            return []
+        # Only messages from the watch; "rtl" are the ones sent from the portal
+        messages = [msg for msg in messages if msg["direction"] != "rtl"]
+
+        def stamp(msg: dict[str, str]) -> str:
+            return f"{msg['date']} {msg['time']}"
+
+        def key(msg: dict[str, str]) -> str:
+            return f"{msg['direction']}|{msg['sender']}|{msg['text']}"
+
+        mark = self._message_marks.get(uuid)
+        last = mark["last"] if mark else ""
+        seen_keys = set(mark["keys"]) if mark else set()
+
+        new = [] if mark is None else [
+            msg for msg in messages
+            if stamp(msg) > last or (stamp(msg) == last and key(msg) not in seen_keys)
+        ]
+
+        newest = max((stamp(msg) for msg in messages), default=last)
+        keys = {key(msg) for msg in messages if stamp(msg) == newest}
+        if newest == last:
+            keys |= seen_keys
+        new_mark = {"last": newest, "keys": sorted(keys)}
+        if new_mark != mark:
+            self._message_marks[uuid] = new_mark
+            self.hass.async_create_task(self._async_save_settings())
+
+        if new:
+            LOGGER.debug("%d new message(s) for %s", len(new), uuid)
+        return new
+
     # ── Setup ─────────────────────────────────────────────────────────
 
     async def async_setup(self) -> None:
@@ -362,16 +418,33 @@ class One2TrackCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
         """
         try:
             async with asyncio.timeout(60):
-                # Refresh base device data from JSON API
+                # Refresh base device data from JSON API. An auth error here
+                # usually means the session expired, not that the password is
+                # wrong: log in again once, and only a failed login counts.
                 try:
-                    self._device_list = await self.client.async_discover_devices()
+                    try:
+                        self._device_list = await self.client.async_discover_devices()
+                    except One2TrackApiClientAuthenticationError:
+                        LOGGER.debug("Session expired, logging in again")
+                        await self.client.async_authenticate()
+                        self._device_list = await self.client.async_discover_devices()
                 except One2TrackApiClientAuthenticationError:
                     raise
                 except One2TrackApiClientError:
                     LOGGER.debug("JSON device refresh failed, keeping cached list")
 
                 # Scrape HTML for additional detail per device
-                return await self.client.async_get_all_device_states()
+                states = await self.client.async_get_all_device_states()
+
+                # New portal messages per device (best-effort). Part of the
+                # data so listeners are notified when messages arrive.
+                for dev in self._device_list:
+                    uuid = dev.get("uuid", "")
+                    if uuid:
+                        states.setdefault(uuid, {})["new_messages"] = (
+                            await self._async_fetch_new_messages(uuid)
+                        )
+                return states
         except One2TrackApiClientAuthenticationError as exc:
             raise ConfigEntryAuthFailed(exc) from exc
         except One2TrackApiClientError as exc:
