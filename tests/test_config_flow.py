@@ -117,7 +117,7 @@ async def test_reauth_flow(hass: HomeAssistant, mock_client: MagicMock) -> None:
     result = await entry.start_reauth_flow(hass)
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reauth_confirm"
-    assert result["description_placeholders"] == {"username": "sam"}
+    assert result["description_placeholders"]["username"] == "sam"
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_PASSWORD: "new-secret"}

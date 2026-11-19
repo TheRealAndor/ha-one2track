@@ -10,7 +10,7 @@
                     "password": "Password"
                 },
                 "data_description": {
-                    "username": "The username you use to log in to the One2Track portal (www.one2trackgps.com) or app.",
+                    "username": "The username you use to log in to the One2Track portal or app.",
                     "password": "The password of that One2Track account."
                 }
             },
