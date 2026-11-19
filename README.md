@@ -37,6 +37,7 @@
 - [Using the integration](#using-the-integration): [entities](#what-you-get-per-watch), [dashboard](#on-your-dashboard), [actions](#actions), [message events](#message-events), [sending messages](#sending-messages-to-the-watch)
 - [Examples](#examples)
 - [Troubleshooting](#diagnostics)
+- [Removing the integration](#removing-the-integration)
 
 <a id="installation"></a>
 ## 🚀 Installation
@@ -59,6 +60,13 @@ Then add the integration:
 [![Open your Home Assistant instance and start setting up One2Track.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=one2track)
 
 Or go to **Settings → Devices & services → Add integration**, search for **One2Track** and log in with your One2Track portal username and password. All watches on your account appear automatically.
+
+| Field | What to enter |
+| - | - |
+| **Username** | The username you use to log in to the [One2Track portal](https://www.one2trackgps.com) or the One2Track app |
+| **Password** | The password of that account. If you change it later, Home Assistant asks for the new one ([details](#when-your-password-changes)) |
+
+One account is enough for all watches linked to it; adding the same account twice is refused.
 
 ### Manual
 
@@ -150,9 +158,10 @@ If you restarted between step 1 and 2 by accident, the integration shows as *not
 |---|---|---|
 | **Connect MOVE** | 27 | All features, including whitelist, intercom and PIN change |
 | **Connect UP** | 77 | GPS interval and step counter |
-| **Connect NEXT** | 201, 277 | GPS interval (5 min, 10 min, 1 hour) and step counter; no whitelist, intercom or PIN change |
+| **Connect NEXT** | 189, 201, 277 | GPS interval (5 min, 10 min, 1 hour) and step counter; no whitelist, intercom or PIN change |
+| **Connect YOU** | 377 | Reported by a user; functions are detected per watch |
 
-Other One2Track watches should work too: the integration asks each watch which functions it supports instead of relying on a fixed list per model. Got a model that shows up as `Unknown`? Please [open an issue](https://github.com/TheRealAndor/ha-one2track/issues).
+Other One2Track watches should work too: the integration asks each watch which functions it supports instead of relying on a fixed list per model. The model name on the device page comes from the One2Track portal itself, so new models are named correctly as well. Still see `Unknown (…)`? Please [open an issue](https://github.com/TheRealAndor/ha-one2track/issues).
 
 <a id="using-the-integration"></a>
 ## 🧭 Using the integration
@@ -494,6 +503,13 @@ automation:
 ```
 
 </details>
+
+<a id="removing-the-integration"></a>
+## 🗑️ Removing the integration
+
+1. Go to **Settings → Devices & services → One2Track**, click the three-dot menu next to the account and choose **Delete**. This removes the watches, their entities and the stored settings from Home Assistant; nothing changes on the watches or in the One2Track portal.
+2. To also remove the files, remove **One2Track** in HACS (or the Marketplace), or delete `custom_components/one2track` if you installed it manually, and restart Home Assistant.
+3. Automations and dashboard cards that use the One2Track entities are not removed automatically; edit or delete them yourself.
 
 <a id="diagnostics"></a>
 ## 🩺 Troubleshooting

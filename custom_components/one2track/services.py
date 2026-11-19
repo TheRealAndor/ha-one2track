@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import voluptuous as vol
-from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
@@ -114,8 +115,9 @@ def _resolve_device(
                         entity_ids.add(ent_entry.entity_id)
 
     if not entity_ids:
-        raise HomeAssistantError("No target entity or device specified")
+        raise ServiceValidationError("No One2Track watch, device or entity selected")
 
+    not_loaded = False
     for entity_id in entity_ids:
         entry = ent_reg.async_get(entity_id)
         if not entry or entry.platform != DOMAIN:
@@ -123,7 +125,9 @@ def _resolve_device(
 
         unique_id = entry.unique_id
         for config_entry in hass.config_entries.async_entries(DOMAIN):
-            if not hasattr(config_entry, "runtime_data") or not config_entry.runtime_data:
+            if config_entry.state is not ConfigEntryState.LOADED:
+                if config_entry.entry_id == entry.config_entry_id:
+                    not_loaded = True
                 continue
             coordinator = config_entry.runtime_data.coordinator
             client = config_entry.runtime_data.client
@@ -132,13 +136,16 @@ def _resolve_device(
                 if unique_id == dev_uuid or unique_id.startswith(dev_uuid + "_"):
                     return dev_uuid, client, coordinator
 
-    raise HomeAssistantError(f"Could not resolve One2Track device from targets")
+    if not_loaded:
+        raise ServiceValidationError(
+            "The One2Track account of this watch is not loaded; check the integration"
+        )
+    raise ServiceValidationError("The selected target is not a One2Track watch")
 
 
-async def async_setup_services(hass: HomeAssistant) -> None:
-    """Register One2Track services."""
-    if hass.services.has_service(DOMAIN, SERVICE_SEND_MESSAGE):
-        return
+@callback
+def async_setup_services(hass: HomeAssistant) -> None:
+    """Register the One2Track actions; called once from async_setup."""
 
     # ── Action: Send message ──────────────────────────────────────
 
@@ -573,9 +580,3 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         schema=vol.Schema({**TARGET_KEYS}),
         supports_response=SupportsResponse.ONLY,
     )
-
-
-async def async_unload_services(hass: HomeAssistant) -> None:
-    """Unload One2Track services."""
-    for service in ALL_SERVICES:
-        hass.services.async_remove(DOMAIN, service)

@@ -24,3 +24,20 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: home-assistant/actions/hassfest@master
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install test requirements
+        run: pip install -r requirements_test.txt
+      - name: Run tests (config flow fully covered)
+        run: >-
+          pytest -v
+          --cov=custom_components.one2track.config_flow
+          --cov-report=term-missing
+          --cov-fail-under=100

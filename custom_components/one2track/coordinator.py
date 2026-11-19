@@ -410,6 +410,8 @@ class One2TrackCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
                 base.update(scraped["device"])
             if "last_location" in scraped:
                 base["last_location"] = scraped["last_location"]
+            if scraped.get("model_name"):
+                base["model_name"] = scraped["model_name"]
 
         return base
 

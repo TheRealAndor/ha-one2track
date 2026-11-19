@@ -37,8 +37,10 @@ class One2TrackEntity(CoordinatorEntity[One2TrackCoordinator]):
     _MODEL_NAMES: dict[int, str] = {
         27: "Connect MOVE",
         77: "Connect UP",
+        189: "Connect NEXT",
         201: "Connect NEXT",
         277: "Connect NEXT",
+        377: "Connect YOU",
     }
 
     @property
@@ -51,5 +53,15 @@ class One2TrackEntity(CoordinatorEntity[One2TrackCoordinator]):
             serial_number=data.get("serial_number"),
             name=data.get("name", self._uuid),
             manufacturer="One2Track",
-            model=self._MODEL_NAMES.get(model_id, f"Unknown ({model_id})") if model_id else None,
+            model=self._model_name(data),
+            model_id=str(model_id) if model_id else None,
         )
+
+    def _model_name(self, data: dict[str, Any]) -> str | None:
+        """Return the model name shown by the portal, or the known name for the model ID."""
+        if name := data.get("model_name"):
+            return name
+        model_id = data.get("device_model_id")
+        if not model_id:
+            return None
+        return self._MODEL_NAMES.get(model_id, f"Unknown ({model_id})")

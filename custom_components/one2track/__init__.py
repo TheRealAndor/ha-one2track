@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import (
@@ -16,10 +17,11 @@ from .api import (
 from .const import DOMAIN, LOGGER
 from .coordinator import One2TrackCoordinator
 from .data import One2TrackData
-from .services import async_setup_services, async_unload_services
+from .services import async_setup_services
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.typing import ConfigType
 
     from .data import One2TrackConfigEntry
 
@@ -32,6 +34,14 @@ PLATFORMS: list[Platform] = [
     Platform.SWITCH,
     Platform.SELECT,
 ]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa: ARG001
+    """Register the One2Track actions once, independent of config entries."""
+    async_setup_services(hass)
+    return True
 
 
 async def async_setup_entry(
@@ -77,7 +87,6 @@ async def async_setup_entry(
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    await async_setup_services(hass)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
@@ -88,17 +97,7 @@ async def async_unload_entry(
     entry: One2TrackConfigEntry,
 ) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-
-    # Only unload services if no other entries remain
-    remaining = [
-        e for e in hass.config_entries.async_entries(DOMAIN)
-        if e.entry_id != entry.entry_id
-    ]
-    if not remaining:
-        await async_unload_services(hass)
-
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_reload_entry(

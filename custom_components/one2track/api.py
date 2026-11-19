@@ -500,6 +500,10 @@ class One2TrackApiClient:
                     "Could not parse 'var last_location' JSON for %s", uuid
                 )
 
+        model_match = self._MODEL_NAME_RE.search(html)
+        if model_match:
+            result["model_name"] = model_match.group(1).strip()
+
         if not result:
             LOGGER.warning(
                 "HTML scraping returned no data for %s — page structure may have changed",
@@ -652,6 +656,13 @@ class One2TrackApiClient:
             )
         return self._parse_messages(body)
 
+    # The watch card on the device page: name, serial number, then the model
+    # name as plain text, e.g. "<h4> Sam </h4> <span>…serial…</span> <br> Connect NEXT <br>".
+    _MODEL_NAME_RE = re.compile(
+        r"class=['\"]col-sm-8['\"]>\s*<h4>[^<]*</h4>\s*<span>(?:(?!</h4>).){0,600}?"
+        r"</span>\s*</span>\s*<br>\s*([^<>]{2,40}?)\s*<br>",
+        re.S,
+    )
     # A date badge, or the start of one message block
     _MESSAGE_TOKEN_RE = re.compile(
         r"m-badge--wide['\"]>\s*(?P<date>\d{2}-\d{2}-\d{4})"
