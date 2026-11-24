@@ -516,7 +516,10 @@ automation:
 <a id="diagnostics"></a>
 ## 🩺 Troubleshooting
 
-**Download diagnostics** when you open an issue: go to **Settings → Devices & services → One2Track**, click the three-dot menu and choose **Download diagnostics** (or do the same on the page of one watch). The file contains the model, the watch's state and the functions it supports. Names, phone numbers, contacts, location, serial numbers and login details are removed, so you can attach it safely.
+**Download diagnostics** when you open an issue: go to **Settings → Devices & services → One2Track**, click the three-dot menu and choose **Download diagnostics** (or do the same on the page of one watch). The file contains the model, the watch's state and the functions it supports. Names, phone numbers, contacts, location, serial numbers and login details are removed from the contents.
+
+> [!IMPORTANT]
+> Home Assistant puts the name of the watch in the **file name** (for example `one2track-…-Sam-….json`). Rename the file before you attach it to a public issue.
 
 For deeper digging, the `one2track.get_raw_device_data` action returns the raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). Unlike diagnostics, this output is **not** anonymised.
 
