@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
     from .data import One2TrackConfigEntry
 
+# Read-only, data comes from the coordinator
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,

@@ -20,6 +20,9 @@ if TYPE_CHECKING:
 
     from .data import One2TrackConfigEntry
 
+# One command to the portal at a time
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001

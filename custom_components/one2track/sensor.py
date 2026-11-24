@@ -28,6 +28,9 @@ if TYPE_CHECKING:
     from .coordinator import One2TrackCoordinator
     from .data import One2TrackConfigEntry
 
+# Read-only, data comes from the coordinator
+PARALLEL_UPDATES = 0
+
 
 @dataclass(frozen=True, kw_only=True)
 class One2TrackSensorDescription(SensorEntityDescription):

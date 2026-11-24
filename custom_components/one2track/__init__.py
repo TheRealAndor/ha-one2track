@@ -66,7 +66,7 @@ async def async_setup_entry(
             f"Unable to connect to One2Track: {exc}"
         ) from exc
 
-    coordinator = One2TrackCoordinator(hass, client)
+    coordinator = One2TrackCoordinator(hass, client, entry)
 
     try:
         await coordinator.async_setup()

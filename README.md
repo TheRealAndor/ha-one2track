@@ -28,6 +28,8 @@
 - ⚙️ **Manage the watch**: phonebook, quiet times, alarms, GPS interval, sound profile and more
 - 🧠 **Works across models**: each watch's features are discovered automatically
 - 🔑 **Password changed?** Home Assistant simply asks for the new one
+- 🇳🇱 **In English and Dutch**, following your Home Assistant language
+- 🩺 **Diagnostics** you can safely attach to an issue: personal data is removed
 
 ## 📑 Contents
 
@@ -514,7 +516,9 @@ automation:
 <a id="diagnostics"></a>
 ## 🩺 Troubleshooting
 
-Call the `one2track.get_raw_device_data` service to get raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). This is invaluable for debugging data issues.
+**Download diagnostics** when you open an issue: go to **Settings → Devices & services → One2Track**, click the three-dot menu and choose **Download diagnostics** (or do the same on the page of one watch). The file contains the model, the watch's state and the functions it supports. Names, phone numbers, contacts, location, serial numbers and login details are removed, so you can attach it safely.
+
+For deeper digging, the `one2track.get_raw_device_data` action returns the raw data from all sources (JSON API, HTML scraping, coordinator state, discovered capabilities). Unlike diagnostics, this output is **not** anonymised.
 
 To see what the integration is doing, open **Settings → Devices & services → One2Track**, click the three-dot menu and choose **Enable debug logging**. Disable it again to download the log, and attach it to your issue.
 

@@ -1,0 +1,137 @@
+{
+    "title": "One2Track GPS-trackers",
+    "config": {
+        "step": {
+            "user": {
+                "title": "Inloggen bij One2Track",
+                "description": "Vul de gegevens van je One2Track-account in.",
+                "data": {
+                    "username": "Gebruikersnaam",
+                    "password": "Wachtwoord"
+                },
+                "data_description": {
+                    "username": "De gebruikersnaam waarmee je inlogt op het One2Track-portaal of in de app.",
+                    "password": "Het wachtwoord van dat One2Track-account."
+                }
+            },
+            "reauth_confirm": {
+                "title": "Opnieuw inloggen",
+                "description": "Het wachtwoord van {username} werkt niet meer. Vul het huidige One2Track-wachtwoord in.",
+                "data": {
+                    "password": "Wachtwoord"
+                },
+                "data_description": {
+                    "password": "Het huidige wachtwoord van je One2Track-account."
+                }
+            }
+        },
+        "error": {
+            "auth": "Ongeldige gebruikersnaam of wachtwoord",
+            "connection": "Kan geen verbinding maken met One2Track",
+            "unknown": "Onverwachte fout"
+        },
+        "abort": {
+            "already_configured": "Dit account is al ingesteld",
+            "reauth_successful": "Opnieuw inloggen is gelukt",
+            "wrong_account": "Deze gegevens horen bij een ander One2Track-account."
+        }
+    },
+    "entity": {
+        "sensor": {
+            "battery": {
+                "name": "Batterij"
+            },
+            "sim_balance": {
+                "name": "Simtegoed"
+            },
+            "last_location_update": {
+                "name": "Laatste locatie-update"
+            },
+            "last_communication": {
+                "name": "Laatste contact"
+            },
+            "signal_strength": {
+                "name": "Signaalsterkte"
+            },
+            "satellite_count": {
+                "name": "Aantal satellieten"
+            },
+            "speed": {
+                "name": "Snelheid"
+            },
+            "altitude": {
+                "name": "Hoogte"
+            },
+            "steps_today": {
+                "name": "Stappen vandaag"
+            },
+            "steps_total": {
+                "name": "Stappen totaal"
+            },
+            "accuracy": {
+                "name": "GPS-nauwkeurigheid"
+            },
+            "heading": {
+                "name": "Richting"
+            },
+            "status": {
+                "name": "Status",
+                "state": {
+                    "gps": "GPS",
+                    "wifi": "Wifi",
+                    "lbs": "Zendmasten (LBS)",
+                    "offline": "Offline"
+                }
+            },
+            "phonebook": {
+                "name": "Telefoonboek"
+            },
+            "whitelist": {
+                "name": "Toegestane nummers"
+            }
+        },
+        "binary_sensor": {
+            "tumble": {
+                "name": "Val gedetecteerd"
+            }
+        },
+        "event": {
+            "message": {
+                "name": "Bericht",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "low_battery": "Batterij bijna leeg",
+                            "sos": "SOS",
+                            "message": "Bericht"
+                        }
+                    }
+                }
+            }
+        },
+        "button": {
+            "refresh_location": {
+                "name": "Locatie vernieuwen"
+            },
+            "find_device": {
+                "name": "Horloge zoeken"
+            },
+            "remote_shutdown": {
+                "name": "Horloge uitzetten"
+            }
+        },
+        "switch": {
+            "step_counter": {
+                "name": "Stappenteller"
+            }
+        },
+        "select": {
+            "gps_interval": {
+                "name": "GPS-interval"
+            },
+            "profile_mode": {
+                "name": "Profielmodus"
+            }
+        }
+    }
+}

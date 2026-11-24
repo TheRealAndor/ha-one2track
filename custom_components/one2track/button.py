@@ -17,6 +17,9 @@ if TYPE_CHECKING:
     from .coordinator import One2TrackCoordinator
     from .data import One2TrackConfigEntry
 
+# One command to the portal at a time
+PARALLEL_UPDATES = 1
+
 
 @dataclass(frozen=True, kw_only=True)
 class One2TrackButtonDescription(ButtonEntityDescription):

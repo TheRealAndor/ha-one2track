@@ -18,6 +18,9 @@ if TYPE_CHECKING:
 
     from .data import One2TrackConfigEntry
 
+# Read-only, data comes from the coordinator
+PARALLEL_UPDATES = 0
+
 EVENT_LOW_BATTERY = "low_battery"
 EVENT_SOS = "sos"
 EVENT_MESSAGE = "message"

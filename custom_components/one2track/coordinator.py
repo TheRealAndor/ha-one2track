@@ -27,6 +27,7 @@ from .const import (
 )
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
     from .api import One2TrackApiClient
@@ -48,11 +49,17 @@ class One2TrackCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
 
     config_entry: One2TrackConfigEntry
 
-    def __init__(self, hass: HomeAssistant, client: One2TrackApiClient) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        client: One2TrackApiClient,
+        config_entry: ConfigEntry | None = None,
+    ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
             LOGGER,
+            config_entry=config_entry,
             name="One2Track",
             update_interval=timedelta(seconds=DEFAULT_UPDATE_INTERVAL_SECONDS),
             always_update=False,
