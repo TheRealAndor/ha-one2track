@@ -6,7 +6,7 @@ Ideas and open work for upcoming versions. Tick an item when it ships and mentio
 
 **✨ Features**
 
-- [ ] Diagnostics download
+- [x] Diagnostics download
 - [ ] Notify entity per watch
 - [ ] Connectivity binary sensor (online/offline)
 - [ ] Warning for low SIM balance
@@ -15,22 +15,22 @@ Ideas and open work for upcoming versions. Tick an item when it ships and mentio
 - [ ] Safety zones from the portal
 - [ ] Quiet times and alarms as entities
 - [ ] Blueprint: smart GPS interval
-- [ ] Dutch translation
+- [x] Dutch translation
 
 **🧪 Quality**
 
-- [ ] Automated tests for the message parser and event detection
+- [x] Automated tests for the message parser and event detection
 - [ ] Verify re-authentication and session renewal in a real installation
 - [ ] Collect alert texts for other languages and alert types
 - [ ] Identical messages in the same minute are reported once
 
 **🏅 Quality scale (Silver)**
 
-- [ ] Register actions in async_setup
-- [ ] Removal instructions in the README
+- [x] Register actions in async_setup
+- [x] Removal instructions in the README
 - [ ] Test suite with more than 95% coverage
-- [ ] PARALLEL_UPDATES on every platform
-- [ ] Document the setup fields
+- [x] PARALLEL_UPDATES on every platform
+- [x] Document the setup fields
 - [ ] Check unavailable handling and logging
 - [ ] Self-assessment and README note
 
